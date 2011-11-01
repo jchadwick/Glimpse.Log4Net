@@ -200,7 +200,7 @@ namespace Glimpse.Core
 
             context.InitGlimpseContext();
 
-            GlimpseTimer.Start("Request", "ASP.NET", "This is the start of something big");
+            GlimpseTimer.Start("Request");
 
             Logger.Info("BeginRequest handling complete for requestId " + context.GetGlimpseRequestId() + " (" + context.Request.Path+")");
         }

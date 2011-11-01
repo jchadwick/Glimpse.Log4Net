@@ -2778,6 +2778,7 @@ var glimpseTimeline = function (scope, settings) {
 };
 
 //TODO this is to  be removed
+    /*
 var glimpseTimelineData = {
     events :[
         { category :'ASPNET', startTime :'', startPoint :0, duration :0, title :'Request Begin', subText :'', pluginContextId :'', plugin :'', details :{} },
@@ -2808,7 +2809,8 @@ var glimpseTimelineData = {
     },
     duration :'230'
 };
-
+*/
+    
 var glimpseTimelinePlugin = function () {
     var timeline,
         defaults = {
@@ -2825,7 +2827,7 @@ var glimpseTimelinePlugin = function () {
         },
         adjustProtocol = function (data) {
             //Pull out data and store
-            timelineData = data.timeline || glimpseTimelineData;
+            timelineData = data.timeline; // || glimpseTimelineData;
             //Clear out data
             data[defaults.key] = 'Generating timeline, please wait...';
         },
