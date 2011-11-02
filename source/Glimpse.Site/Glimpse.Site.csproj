@@ -129,6 +129,8 @@
     <Content Include="Content\Plugin\Server.jpg" />
     <Content Include="Content\Plugin\Session.jpg" />
     <Content Include="Content\Plugin\switchServers.png" />
+    <Content Include="Content\Plugin\Timeline.jpg" />
+    <Content Include="Content\Plugin\TimelineAlt.jpg" />
     <Content Include="Content\Plugin\Trace.jpg" />
     <Content Include="Content\Plugin\TraceIcons.png" />
     <Content Include="Content\Plugin\View.jpg" />
@@ -263,6 +265,7 @@
     <Content Include="Views\Help\Plugins\Index.cshtml" />
     <Content Include="Views\Help\CreatingPlugins.cshtml" />
     <Content Include="Views\Help\Setup.cshtml" />
+    <Content Include="Views\Help\Plugins\Timeline.cshtml" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />
