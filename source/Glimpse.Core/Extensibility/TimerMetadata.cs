@@ -46,7 +46,7 @@ namespace Glimpse.Core.Extensibility
             result.Stopped += (startPoint, duration) =>
                                   {
                                       var d = startPoint + duration - StartPoint;
-                                      Duration = d + 15;
+                                      Duration = (long)((int)d * 1.01);//TODO: Fix this hack to add right padding on timeline
                                   };
 
             Events.Add(result);

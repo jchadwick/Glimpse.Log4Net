@@ -24,8 +24,8 @@ task clean {
     delete_directory "$source_dir\Glimpse.Mvc3\obj"
     delete_directory "$source_dir\Glimpse.Ef\bin"
     delete_directory "$source_dir\Glimpse.Ef\obj"
-    delete_directory "$source_dir\Glimpse.Elmah\bin"
-    delete_directory "$source_dir\Glimpse.Elmah\obj"
+    #delete_directory "$source_dir\Glimpse.Elmah\bin"
+    #delete_directory "$source_dir\Glimpse.Elmah\obj"
 }
 
 task compile -depends clean {
@@ -44,7 +44,7 @@ task merge -depends compile {
     del $source_dir\Glimpse.Mvc3\nuspec\lib\net40\Glimpse.Mvc3.pdb
     
     copy $source_dir\Glimpse.Ef\bin\Release\Glimpse.Ef.dll $source_dir\Glimpse.Ef\nuspec\lib\net40\Glimpse.Ef.dll
-    copy $source_dir\Glimpse.Elmah\bin\Release\Glimpse.Elmah.dll $source_dir\Glimpse.Elmah\nuspec\lib\net40\Glimpse.Elmah.dll
+    #copy $source_dir\Glimpse.Elmah\bin\Release\Glimpse.Elmah.dll $source_dir\Glimpse.Elmah\nuspec\lib\net40\Glimpse.Elmah.dll
 
 }
 
@@ -54,18 +54,18 @@ task pack -depends merge {
     exec { & $tools_dir\nuget.exe pack $source_dir\Glimpse.Core\nuspec\Glimpse.nuspec -OutputDirectory $build_dir\local }
     exec { & $tools_dir\nuget.exe pack $source_dir\Glimpse.Mvc3\nuspec\Glimpse.Mvc3.nuspec -OutputDirectory $build_dir\local }
     exec { & $tools_dir\nuget.exe pack $source_dir\Glimpse.Ef\nuspec\Glimpse.Ef.nuspec -OutputDirectory $build_dir\local }
-    exec { & $tools_dir\nuget.exe pack $source_dir\Glimpse.Elmah\nuspec\Glimpse.Elmah.nuspec -OutputDirectory $build_dir\local }
+    #exec { & $tools_dir\nuget.exe pack $source_dir\Glimpse.Elmah\nuspec\Glimpse.Elmah.nuspec -OutputDirectory $build_dir\local }
     
     mkdir $build_dir\local\zip
     copy $source_dir\Glimpse.Core\nuspec\lib\net40\Glimpse.Core.dll $build_dir\local\zip
     copy $source_dir\Glimpse.Mvc3\nuspec\lib\net40\Glimpse.Mvc3.dll $build_dir\local\zip
     copy $source_dir\Glimpse.Ef\nuspec\lib\net40\Glimpse.Ef.dll $build_dir\local\zip
-    copy $source_dir\Glimpse.Elmah\nuspec\lib\net40\Glimpse.Elmah.dll $build_dir\local\zip
+    #copy $source_dir\Glimpse.Elmah\nuspec\lib\net40\Glimpse.Elmah.dll $build_dir\local\zip
     
     copy $source_dir\Glimpse.Core\nuspec\content\App_Readme\glimpse.readme.txt $build_dir\local\zip
     copy $source_dir\Glimpse.Mvc3\nuspec\content\App_Readme\glimpse.mvc3.readme.txt $build_dir\local\zip
     copy $source_dir\Glimpse.Ef\nuspec\content\App_Readme\glimpse.ef.readme.txt $build_dir\local\zip
-    copy $source_dir\Glimpse.Elmah\nuspec\content\App_Readme\glimpse.elmah.readme.txt $build_dir\local\zip
+    #copy $source_dir\Glimpse.Elmah\nuspec\content\App_Readme\glimpse.elmah.readme.txt $build_dir\local\zip
     
     copy $base_dir\license.txt $build_dir\local\zip
     

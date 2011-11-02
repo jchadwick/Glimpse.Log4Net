@@ -3,7 +3,7 @@
     <!-- Values in dollar $igns are automatically pulled from the AssemblyInfo.cs attributes by NuGet.exe -->
     <metadata>
         <id>Glimpse.Ef</id>
-        <version>0.0.5</version>
+        <version>0.86</version>
         <title>Glimpse for EF (Alpha)</title>
         <authors>nmolnar, avanderhoorn</authors>
         <owners>nmolnar, avanderhoorn</owners>
@@ -15,7 +15,7 @@
         <summary>Glimpse plugin pack providing features useful when using the EntityFramework object-relational mapper.</summary>
         <tags>MVC MVC3 ASP.NET Web EntityFramework EF</tags>
         <dependencies>
-            <dependency id="Glimpse" version="[0.85]" />
+            <dependency id="Glimpse" version="[0.86]" />
         </dependencies>
     </metadata>
 </package>

@@ -8,7 +8,7 @@ namespace Glimpse.Core.Plugin
     {
         public string Name
         {
-            get { return "timeline"; }
+            get { return "Timeline"; }
         }
 
         public object GetData(HttpContextBase context)
