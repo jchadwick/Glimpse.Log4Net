@@ -2330,7 +2330,7 @@ var glimpseTimeline = function (scope, settings) {
                             category = settings.category[event.category];
                              
                         row.find('td:first-child').prepend($('<div class="glimpse-tl-event"></div>').css({ 'backgroundColor' : category.eventColor, marginLeft : (15 * event.nesting) + 'px', 'border' : '1px solid ' + category.eventColorHighlight }));
-                        row.find('td:nth-child(3)').css('position', 'relative').prepend($('<div class="glimpse-tl-event"></div>').css({ 'backgroundColor' : category.eventColor, 'border' : '1px solid ' + category.eventColorHighlight, 'left' : event.startPersent + '%', width : event.widthPersent + '%', position : 'absolute', top : '5px' })); 
+                        row.find('td:nth-child(3)').css('position', 'relative').prepend($('<div class="glimpse-tl-event"></div>').css({ 'backgroundColor' : category.eventColor, 'border' : '1px solid ' + category.eventColorHighlight, 'margin-left' : event.startPersent + '%', width : event.widthPersent + '%' })); 
                     }); 
                 },
                 processCategories = function () {
@@ -2778,39 +2778,7 @@ var glimpseTimeline = function (scope, settings) {
 };
 
 //TODO this is to  be removed
-    /*
-var glimpseTimelineData = {
-    events :[
-        { category :'ASPNET', startTime :'', startPoint :0, duration :0, title :'Request Begin', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'ASPNET', startTime :'', startPoint :2, duration :11, title :'Http Handlers', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'ASPNET', startTime :'', startPoint :15, duration :0, title :'Process Pipeline', subText :'', pluginContextId :'', plugin :'', details :{ 'Hello World' :'This is data', 'Jester' :'Hello there' } },
-        { category :'Database', startTime :'', startPoint :20, duration :0, title :'Connection', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'MVC', startTime :'', startPoint :25, duration :15, title :'Action', subText :'Person/Add', pluginContextId :'', plugin :'', details :{} },
-        { category :'Database', startTime :'', startPoint :55, duration :0, title :'Command', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'MVC', startTime :'', startPoint :60, duration :20, title :'Filter', subText :'Authorization', pluginContextId :'', plugin :'', details :{} },
-        { category :'MVC', startTime :'', startPoint :75, duration :55, title :'Filter', subText :'Validation', pluginContextId :'', plugin :'', details :{} },
-        { category :'Database', startTime :'', startPoint :80, duration :45, title :'Transaction', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'Trace', startTime :'', startPoint :100, duration :6, title :'Logon', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'Routes', startTime :'', startPoint :134, duration :4, title :'Resolved Routes', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'Trace', startTime :'', startPoint :138, duration :0, title :'Registered', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'Trace', startTime :'', startPoint :142, duration :0, title :'Socket Open', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'Routes', startTime :'', startPoint :143, duration :30, title :'Partial View', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'Database', startTime :'', startPoint :150, duration :0, title :'Command', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'Routes', startTime :'', startPoint :152, duration :8, title :'Partial View', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'MVC', startTime :'', startPoint :160, duration :36, title :'View', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'Trace', startTime :'', startPoint :195, duration :29, title :'Process Workflow', subText :'', pluginContextId :'', plugin :'', details :{} }
-    ],
-    category :{
-        'ASPNET' : { eventColor : '#FD4545', eventColorHighlight : '#DD3131' },
-        'Database' : { eventColor : '#AF78DD', eventColorHighlight : '#823BBE' }, //:{ event:'purple' },
-        'MVC' : { eventColor : '#72A3E4', eventColorHighlight : '#5087CF' }, //{ event:'blue' },
-        'Trace' : { eventColor : '#FDBF45', eventColorHighlight : '#DDA431' }, //{ event:'orange' },
-        'Routes' : { eventColor : '#10E309', eventColorHighlight : '#0EC41D' } //{ event:'green' }
-    },
-    duration :'230'
-};
-*/
-    
+ 
 var glimpseTimelinePlugin = function () {
     var timeline,
         defaults = {
@@ -2827,7 +2795,7 @@ var glimpseTimelinePlugin = function () {
         },
         adjustProtocol = function (data) {
             //Pull out data and store
-            timelineData = data.timeline; // || glimpseTimelineData;
+            timelineData = data.Timeline;
             //Clear out data
             data[defaults.key] = 'Generating timeline, please wait...';
         },
