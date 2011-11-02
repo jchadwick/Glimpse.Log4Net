@@ -153,8 +153,6 @@ namespace Glimpse.EF.Plumbing.Profiler
             var stopwatch = Stopwatch.StartNew();
 
 
-            using (GlimpseTimer.Start("ExecuteDbDataReader", "Database"))
-            {
                 try
                 {
                     reader = InnerCommand.ExecuteReader(behavior);
@@ -164,7 +162,7 @@ namespace Glimpse.EF.Plumbing.Profiler
                     LogCommandError(commandId, exception);
                     throw;
                 }
-            }
+
             stopwatch.Stop(); 
             LogCommandEnd(commandId, stopwatch.ElapsedMilliseconds, reader.RecordsAffected);
 
@@ -181,8 +179,6 @@ namespace Glimpse.EF.Plumbing.Profiler
 
             LogCommandStart(commandId); 
             var stopwatch = Stopwatch.StartNew();
-            using (GlimpseTimer.Start("ExecuteNonQuery", "Database"))
-            {
                 try
                 {
                     num = InnerCommand.ExecuteNonQuery();
@@ -192,7 +188,6 @@ namespace Glimpse.EF.Plumbing.Profiler
                     LogCommandError(commandId, exception);
                     throw;
                 }
-            }
             stopwatch.Stop(); 
             LogCommandEnd(commandId, stopwatch.ElapsedMilliseconds, num);
 
@@ -209,8 +204,6 @@ namespace Glimpse.EF.Plumbing.Profiler
 
             LogCommandStart(commandId); 
             var stopwatch = Stopwatch.StartNew();
-            using (GlimpseTimer.Start("ExecuteScalar", "Database"))
-            {
                 try
                 {
                     result = InnerCommand.ExecuteScalar();
@@ -220,7 +213,6 @@ namespace Glimpse.EF.Plumbing.Profiler
                     LogCommandError(commandId, exception);
                     throw;
                 }
-            }
             stopwatch.Stop(); 
             LogCommandEnd(commandId, stopwatch.ElapsedMilliseconds, null);
 

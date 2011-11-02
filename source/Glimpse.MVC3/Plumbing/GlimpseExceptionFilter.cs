@@ -21,7 +21,7 @@ namespace Glimpse.Mvc3.Plumbing
             var watch = new Stopwatch();
             watch.Start();
 
-            using (GlimpseTimer.Start("Executing IExceptionFilter " + ExceptionFilter.GetType().Name, "MVC"))
+            using (GlimpseTimer.Start("Executing: Exception Filter", "Filter", ExceptionFilter.GetType().Name))
             {
                 ExceptionFilter.OnException(filterContext);
             }

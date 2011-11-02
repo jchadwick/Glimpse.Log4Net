@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Web.Mvc;
 using Glimpse.Core.Extensibility;
@@ -26,7 +25,7 @@ namespace Glimpse.Mvc3.Plumbing
 
             //writer.Write("<!--VIEW("+ViewName+")-->");
 
-            using (GlimpseTimer.Start(string.Format("Render {0} View", ViewName), "MVC"))
+            using (GlimpseTimer.Start(string.Format("Render View: {0}", ViewName), "View"))
             {
                 View.Render(viewContext, writer);
             }

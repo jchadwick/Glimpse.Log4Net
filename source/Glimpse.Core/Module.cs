@@ -200,7 +200,7 @@ namespace Glimpse.Core
 
             context.InitGlimpseContext();
 
-            GlimpseTimer.Start("Request");
+            GlimpseTimer.Moment("Begin Request");
 
             Logger.Info("BeginRequest handling complete for requestId " + context.GetGlimpseRequestId() + " (" + context.Request.Path+")");
         }
@@ -238,7 +238,7 @@ namespace Glimpse.Core
         {
             if (!RequestValidator.IsValid(context, LifecycleEvent.EndRequest)) return;
 
-            GlimpseTimer.Stop("Request");
+            GlimpseTimer.Moment("End Request");
 
             ProcessData(context, false); //Run all plugins that DO NOT need access to Session
 
