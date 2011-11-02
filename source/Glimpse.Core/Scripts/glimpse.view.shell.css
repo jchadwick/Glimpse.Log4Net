@@ -723,7 +723,7 @@ li.glimpse-permanent {
 	border-width: 1px 1px 1px 5px;
 }
 
-::-webkit-scrollbar {
+.glimpse ::-webkit-scrollbar {
 	height: 16px;
 	overflow: visible;
 	width: 16px;
