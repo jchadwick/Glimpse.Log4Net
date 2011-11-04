@@ -117,6 +117,10 @@
     padding-right: 20px;
     text-align: center;
 }
+.glimpse-title .glimpse-context-stack .glimpse-selectable {
+    cursor:pointer;
+    font-weight:bold;
+}
 .glimpse .glimpse-drop {
     padding: 1px 1px 1px 8px;
     height: 14px;
@@ -672,4 +676,55 @@ li.glimpse-permanent {
 } 
 .glimpse-popup .glimpse-panel { 
     overflow:visible !important; 
+}
+
+
+
+
+.glimpse ::-webkit-scrollbar-corner {
+	vbackground: transparent;
+}
+
+.glimpse ::-webkit-scrollbar-corner {
+	background-clip: padding-box;
+	background-color: whiteSmoke;
+	border: solid white;
+	box-shadow: inset 1px 1px 0 rgba(0,0,0,.14);
+	border-width: 3px 0 0 3px;
+}
+
+.glimpse ::-webkit-scrollbar-track-piece {
+	background-clip: padding-box;
+	background-color: whiteSmoke;
+	border: solid white;
+	box-shadow: inset 1px 0 0 rgba(0,0,0,.14),inset -1px 0 0 rgba(0,0,0,.07);
+	border-width: 0 0 0 3px;
+}
+
+.glimpse ::-webkit-scrollbar-track {
+	background-clip: padding-box;
+	border: solid transparent;
+	border-width: 0 0 0 7px;
+}
+
+.glimpse ::-webkit-scrollbar-button {
+	height: 0;
+	width: 0;
+}
+
+.glimpse ::-webkit-scrollbar-thumb {
+	background-color: rgba(0, 0, 0, .2);
+	background-clip: padding-box;
+	border: solid transparent;
+	min-height: 28px;
+	padding: 100px 0 0;
+	box-shadow: inset 1px 1px 0 rgba(0,0,0,.1),inset 0 -1px 0 rgba(0,0,0,.07);
+	border-width: 0 0 0 7px; 
+	border-width: 1px 1px 1px 5px;
+}
+
+.glimpse ::-webkit-scrollbar {
+	height: 16px;
+	overflow: visible;
+	width: 16px;
 }

@@ -1,0 +1,63 @@
+﻿
+<h2>Timeline Tab</h2>
+
+<div class="plugin-summary">
+    <p>When creating Glimpse, we realization that as a side effect of the inspection is being done, 
+        a lot of timing information available and collected. The Timeline plugin aims to make this data
+        avaiable in one central soure.</p>
+</div>
+
+<div class="plugin-layout">
+    <h3>Primary Layout</h3> 
+    <img src="@Links.Content.Plugin.Timeline_jpg" /> 
+    <ol class="plain">
+        <li><span>Categories</span>: The categories which the various events are grouped into. </li>
+        <li><span>Summary Section</span>: Shows the aggregate view of all the events, grouped by Category</li>
+        <li><span>Events</span>: Timing information associated with a given event</li>
+        <li><span>Timing</span>: Shows the start, stop and duration of an event, and if applicable, time less children</li>
+    </ol> 
+        
+    <h3>Functionality</h3>
+    <ol class="plain">
+        <li><span>Categor Checkbox</span>: Events  belonging to a given category can be hidden by hovering 
+            over the category and selecting the checkbox.</li>
+        <li><span>Slide Handles</span>: Allows you to zoom into a given part of the timeline</li>
+        <li><span>Hovering</span>: Allows you to hover over the an event and see any additional info</li>
+        <li><span>Switch View</span>: Timeline has an alternative view shown below</li>
+    </ol> 
+    
+    <h3>Alternate Layout</h3> 
+    <img src="@Links.Content.Plugin.TimelineAlt_jpg" /> 
+    <ol class="plain">
+        <li><span>Title</span>: Describes the name of the event followed by any relevent details</li>
+        <li><span>Category</span>: What type of event we have</li>
+        <li><span>Timing</span>: Visually where does the event fall</li>
+        <li><span>Start Point</span>: Starting time of the event</li>
+        <li><span>Duration</span>: How long the event took to evecute</li>
+        <li><span>w/out Children</span>: Duration less the amount of time any direct children took to execute</li>
+    </ol> 
+
+</div>
+
+<div class="plugin-faq">
+    <h3>Frequently Asked Questions</h3> 
+    <ol class="plain">
+        <li>
+            <div>I want to add my own data to the Timeline?</div>
+            As part of the timeline, we have developed an API which lets you add any data you wish. 
+            This data can either be a duration event or a moment in time event. Here we show an 
+            example of each:
+
+            <pre class="csharpcode">
+//For duration events
+using (GlimpseTimer.Start("Event Name", "Event Category", "Description"))
+{
+//...
+}
+
+//For snapshot events
+GlimpseTimer.Moment("Event Name", "Event Category", "Description");
+</pre>
+        </li> 
+    </ol>
+</div>  

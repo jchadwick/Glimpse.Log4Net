@@ -378,6 +378,7 @@ namespace Links {
             public static readonly string Ajax_jpg = Url("Ajax.jpg");
             public static readonly string Binding_jpg = Url("Binding.jpg");
             public static readonly string Config_jpg = Url("Config.jpg");
+            public static readonly string enviro_png = Url("enviro.png");
             public static readonly string Environment_jpg = Url("Environment.jpg");
             public static readonly string Execution_jpg = Url("Execution.jpg");
             public static readonly string Metadata_jpg = Url("Metadata.jpg");
@@ -386,6 +387,9 @@ namespace Links {
             public static readonly string Routes_jpg = Url("Routes.jpg");
             public static readonly string Server_jpg = Url("Server.jpg");
             public static readonly string Session_jpg = Url("Session.jpg");
+            public static readonly string switchServers_png = Url("switchServers.png");
+            public static readonly string Timeline_jpg = Url("Timeline.jpg");
+            public static readonly string TimelineAlt_jpg = Url("TimelineAlt.jpg");
             public static readonly string Trace_jpg = Url("Trace.jpg");
             public static readonly string TraceIcons_png = Url("TraceIcons.png");
             public static readonly string View_jpg = Url("View.jpg");

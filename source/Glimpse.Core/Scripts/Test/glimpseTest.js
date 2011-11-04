@@ -83,7 +83,7 @@ var glimpseTest = (function ($) {
                 if (handel)
                     handel.trigger(param);
                 else 
-                    $.ajax(param); 
+                    original(param); 
             };
         };
 
