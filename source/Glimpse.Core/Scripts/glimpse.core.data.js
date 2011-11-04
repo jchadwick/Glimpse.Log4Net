@@ -1,18 +1,14 @@
 ﻿data = (function () {
     var //Support
-        inner = {},
-        stack = [],
+        inner = {}, 
     
         //Main 
-        update = function (data, stackInfo) {
+        update = function (data) {
             inner = data; 
-
-            if (!stackInfo) 
-                stack.push(stackInfo);
 
             pubsub.publish('action.data.update');
         },
-        retrieve = function(requestId, callback, stackInfo) { 
+        retrieve = function(requestId, callback) { 
             if (callback.start)
                 callback.start(requestId);
 
@@ -23,8 +19,8 @@
                 contentType : 'application/json',
                 success : function (data, textStatus, jqXHR) {   
                     if (callback.success) 
-                        callback.success(requestId, data, current, textStatus, jqXHR);  
-                    update(data, stackInfo); 
+                        callback.success(requestId, data, inner, textStatus, jqXHR);  
+                    update(data);  
                 }, 
                 complete : function (jqXHR, textStatus) {
                     if (callback.complete) 
@@ -47,7 +43,7 @@
     init(); 
     
     return {
-        stack : stack,
+//        stack : stack,
         current : current,
         currentMetadata : currentMetadata,
         update : update,

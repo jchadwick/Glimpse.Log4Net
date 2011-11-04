@@ -6,6 +6,7 @@
         isActive = false, 
         resultCount = 0,
         notice = undefined,
+        currentData = undefined,
         wireListener = function () {  
             glimpse.pubsub.subscribe('data.elements.processed', wireDomListeners); 
             glimpse.pubsub.subscribe('state.build.prerender', setupData); 
@@ -23,8 +24,10 @@
             var payload = glimpse.data.current(),
                 metadata = glimpse.data.currentMetadata().plugins;
 
-            //If we are looking at an ajax request we want to keep
-            if (!payload.isAjax) {
+            //If we are looking at an ajax request or reloading our original reuqest we want to keep
+            if (!payload.isAjax && (!currentData || currentData.requestId != payload.requestId)) {
+                currentData = payload;
+
                 payload.data.Ajax = { name: 'Ajax', data: 'No requests currently detected...' };
                 metadata.Ajax = { helpUrl: 'http://getglimpse.com/Help/Plugin/Ajax' };
                 
@@ -62,13 +65,12 @@
         
         retreieveSummary = function () { 
             if (!isActive) { return; }
-            var data = glimpse.data.current();
- 
+
             //Poll for updated summary data
             notice.prePoll(); 
             $.ajax({
                 url: glimpsePath + 'Ajax',
-                data: { 'glimpseId' : data.requestId },
+                data: { 'glimpseId' : currentData.requestId },
                 type: 'GET',
                 contentType: 'application/json',
                 complete : function(jqXHR, textStatus) {
@@ -98,7 +100,7 @@
             //Prepend results as we go 
             for (var x = result.length; --x >= resultCount;) {
                 var item = result[x];
-                panel.find('tbody').prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td><a href="#" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
+                panel.find('tbody').prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td><a href="#" class="glimpse-ajax-link" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
             }
         },
         
@@ -110,35 +112,38 @@
             var panel = glimpse.elements.findPanel('Ajax');
             panel.find('.glimpse-head-message').fadeOut();
             panel.find('.selected').removeClass('selected');
-            
-            //TODO: when clearning from ajax should go back to the parent request 
+             
+            glimpse.data.update(currentData);
         },
         
         selected = function (item) {
             var requestId = item.attr('data-glimpseId');
 
-            item.hide().parent().append('<div class="loading"><div class="icon"></div>Loading...</div>');
+            item.hide().parent().append('<div class="loading glimpse-ajax-loading" data-glimpseId="' + requestId + '"><div class="icon"></div>Loading...</div>');
 
             request(requestId);
         },
         request = function (requestId) { 
-//            glimpse.data.retrieve(requestId, {
-//                successApplied : function () {
-//                    process();
-//                }
-//            });
+            glimpse.data.retrieve(requestId, {
+                success : function (requestId, data, current) {
+                    process(requestId);
+                }
+            });
         },
-        process = function (link) {
-            var panel = glimpse.elements.findPanel('Ajax');
+        process = function (requestId) {
+            var panel = glimpse.elements.findPanel('Ajax'),
+                loading = panel.find('.glimpse-ajax-loading[data-glimpseId="' + requestId + '"]'),
+                link = panel.find('.glimpse-ajax-link[data-glimpseId="' + requestId + '"]');
+
             panel.find('.glimpse-head-message').fadeIn();
-            panel.find('.selected').removeClass('selected');
-            link.parents('tr:first').addClass('selected'); 
+            panel.find('.selected').removeClass('selected'); 
+            loading.fadeOut(100).delay(100).remove(); 
+            link.delay(100).fadeIn().parents('tr:first').addClass('selected');
         },
 
         //Main 
         init = function () {
-            wireListener();
-            setupData();
+            wireListener(); 
         };
 
     init();

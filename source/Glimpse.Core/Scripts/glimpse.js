@@ -308,19 +308,15 @@ var glimpse = (function ($, scope) {
         } (),
         data = (function () {
             var //Support
-                inner = {},
-                stack = [],
+                inner = {}, 
             
                 //Main 
-                update = function (data, stackInfo) {
+                update = function (data) {
                     inner = data; 
-        
-                    if (!stackInfo) 
-                        stack.push(stackInfo);
         
                     pubsub.publish('action.data.update');
                 },
-                retrieve = function(requestId, callback, stackInfo) { 
+                retrieve = function(requestId, callback) { 
                     if (callback.start)
                         callback.start(requestId);
         
@@ -331,8 +327,8 @@ var glimpse = (function ($, scope) {
                         contentType : 'application/json',
                         success : function (data, textStatus, jqXHR) {   
                             if (callback.success) 
-                                callback.success(requestId, data, current, textStatus, jqXHR);  
-                            update(data, stackInfo); 
+                                callback.success(requestId, data, inner, textStatus, jqXHR);  
+                            update(data);  
                         }, 
                         complete : function (jqXHR, textStatus) {
                             if (callback.complete) 
@@ -355,7 +351,7 @@ var glimpse = (function ($, scope) {
             init(); 
             
             return {
-                stack : stack,
+        //        stack : stack,
                 current : current,
                 currentMetadata : currentMetadata,
                 update : update,
@@ -1607,6 +1603,7 @@ var glimpseAjaxPlugin = (function ($, glimpse) {
         isActive = false, 
         resultCount = 0,
         notice = undefined,
+        currentData = undefined,
         wireListener = function () {  
             glimpse.pubsub.subscribe('data.elements.processed', wireDomListeners); 
             glimpse.pubsub.subscribe('state.build.prerender', setupData); 
@@ -1624,8 +1621,10 @@ var glimpseAjaxPlugin = (function ($, glimpse) {
             var payload = glimpse.data.current(),
                 metadata = glimpse.data.currentMetadata().plugins;
 
-            //If we are looking at an ajax request we want to keep
-            if (!payload.isAjax) {
+            //If we are looking at an ajax request or reloading our original reuqest we want to keep
+            if (!payload.isAjax && (!currentData || currentData.requestId != payload.requestId)) {
+                currentData = payload;
+
                 payload.data.Ajax = { name: 'Ajax', data: 'No requests currently detected...' };
                 metadata.Ajax = { helpUrl: 'http://getglimpse.com/Help/Plugin/Ajax' };
                 
@@ -1663,13 +1662,12 @@ var glimpseAjaxPlugin = (function ($, glimpse) {
         
         retreieveSummary = function () { 
             if (!isActive) { return; }
-            var data = glimpse.data.current();
- 
+
             //Poll for updated summary data
             notice.prePoll(); 
             $.ajax({
                 url: glimpsePath + 'Ajax',
-                data: { 'glimpseId' : data.requestId },
+                data: { 'glimpseId' : currentData.requestId },
                 type: 'GET',
                 contentType: 'application/json',
                 complete : function(jqXHR, textStatus) {
@@ -1699,7 +1697,7 @@ var glimpseAjaxPlugin = (function ($, glimpse) {
             //Prepend results as we go 
             for (var x = result.length; --x >= resultCount;) {
                 var item = result[x];
-                panel.find('tbody').prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td><a href="#" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
+                panel.find('tbody').prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td><a href="#" class="glimpse-ajax-link" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
             }
         },
         
@@ -1711,35 +1709,38 @@ var glimpseAjaxPlugin = (function ($, glimpse) {
             var panel = glimpse.elements.findPanel('Ajax');
             panel.find('.glimpse-head-message').fadeOut();
             panel.find('.selected').removeClass('selected');
-            
-            //TODO: when clearning from ajax should go back to the parent request 
+             
+            glimpse.data.update(currentData);
         },
         
         selected = function (item) {
             var requestId = item.attr('data-glimpseId');
 
-            item.hide().parent().append('<div class="loading"><div class="icon"></div>Loading...</div>');
+            item.hide().parent().append('<div class="loading glimpse-ajax-loading" data-glimpseId="' + requestId + '"><div class="icon"></div>Loading...</div>');
 
             request(requestId);
         },
         request = function (requestId) { 
-//            glimpse.data.retrieve(requestId, {
-//                successApplied : function () {
-//                    process();
-//                }
-//            });
+            glimpse.data.retrieve(requestId, {
+                success : function (requestId, data, current) {
+                    process(requestId);
+                }
+            });
         },
-        process = function (link) {
-            var panel = glimpse.elements.findPanel('Ajax');
+        process = function (requestId) {
+            var panel = glimpse.elements.findPanel('Ajax'),
+                loading = panel.find('.glimpse-ajax-loading[data-glimpseId="' + requestId + '"]'),
+                link = panel.find('.glimpse-ajax-link[data-glimpseId="' + requestId + '"]');
+
             panel.find('.glimpse-head-message').fadeIn();
-            panel.find('.selected').removeClass('selected');
-            link.parents('tr:first').addClass('selected'); 
+            panel.find('.selected').removeClass('selected'); 
+            loading.fadeOut(100).delay(100).remove(); 
+            link.delay(100).fadeIn().parents('tr:first').addClass('selected');
         },
 
         //Main 
         init = function () {
-            wireListener();
-            setupData();
+            wireListener(); 
         };
 
     init();
