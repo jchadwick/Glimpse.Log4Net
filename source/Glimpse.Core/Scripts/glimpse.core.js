@@ -57,3 +57,4 @@ $Glimpse(document).ready(function() {
 });
 
 /*(import:glimpse.ajax.plugin.js)*/
+/*(import:glimpse.history.plugin.js)*/

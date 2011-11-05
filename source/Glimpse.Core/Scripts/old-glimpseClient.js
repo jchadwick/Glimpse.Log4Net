@@ -66,14 +66,7 @@ if (window.jQueryGlimpse) { (function ($) {
     //#region $.glimpseRemote
 
     $.glimpseRemote = {};
-    $.extend($.glimpseRemote, {
-        init: function () {
-            var gr = this;
-
-            //Wire up plugin
-            $.glimpse.addProtocolListener(function (data) { gr.adjustProtocol(data); }, true);
-            $.glimpse.addLayoutListener(function (tabStrip, panelHolder) { gr.adjustLayout(tabStrip, panelHolder); }, true);
-        },
+    $.extend($.glimpseRemote, { 
         adjustProtocol: function (data) {
             var gr = this, metadata;
 

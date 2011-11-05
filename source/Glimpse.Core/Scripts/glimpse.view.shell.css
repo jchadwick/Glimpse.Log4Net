@@ -403,6 +403,7 @@
     font-weight: bold;
     font-style: normal;
 }
+/*
 .glimpse-panel .glimpse-side-sub-panel {
     right: 0;
     z-index: 10;
@@ -417,6 +418,26 @@
     height: 100%;
     width: 75%;
     float: left;
+}*/
+.glimpse-panel .glimpse-col-side {
+	border-right: 1px solid #404040;
+	background-color: #F2F5F7;
+	position: absolute;
+	width: 200px;
+	height: 100%;
+	left: 0px;
+}
+.glimpse-panel .glimpse-col-main {
+	position: absolute;
+	left: 200px;
+	right: 0px;
+	top: 0px;
+}
+.glimpse-panel .glimpse-col-side .even, .glimpse-panel .glimpse-col-side .even > td {
+	background-color: #E1E7F0;
+}
+.glimpse-panel .glimpse-col-side .odd, .glimpse-panel .glimpse-col-side .odd > td {
+	background-color: #F2F5F7;
 }
 .glimpse-panel-holder .glimpse-active {
     display: block;
