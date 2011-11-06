@@ -17,6 +17,7 @@ var glimpseTest = (function ($) {
             register("Pager", pager);
             register("Ajax", ajax);
             register("History", history);
+            register("Clients", clients);
             //http://stackoverflow.com/questions/5272698/how-to-fake-jquery-ajax-response
             var original = $.ajax;
             $.ajax = function (param) { 
