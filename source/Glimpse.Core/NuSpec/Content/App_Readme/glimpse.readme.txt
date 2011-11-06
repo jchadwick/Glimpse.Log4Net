@@ -107,6 +107,12 @@ Details coming soon.
 
 Release Notes
 -------------
+11/01/2011 - 0.86
+- Added Timeline plugin
+- Added simplified support for redirected requests
+- Support for IPv4 range matching
+- Added paging support for plugins
+
 08/16/2011 - 0.85
 - Full overhaul of the AJAX hooks the glimpse uses, which fixes several bugs
 - Fixed issue in history handler that caused all results to be returned and added caching to single client history requests.

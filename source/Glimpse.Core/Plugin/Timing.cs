@@ -1,4 +1,4 @@
-﻿/*using System.Web;
+﻿using System.Web;
 using Glimpse.Core.Extensibility;
 
 namespace Glimpse.Core.Plugin
@@ -8,7 +8,7 @@ namespace Glimpse.Core.Plugin
     {
         public string Name
         {
-            get { return "timeline"; }
+            get { return "Timeline"; }
         }
 
         public object GetData(HttpContextBase context)
@@ -23,4 +23,4 @@ namespace Glimpse.Core.Plugin
             throw new System.NotImplementedException();
         }
     }
-}*/
+}

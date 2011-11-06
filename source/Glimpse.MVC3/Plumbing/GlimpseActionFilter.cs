@@ -23,7 +23,7 @@ namespace Glimpse.Mvc3.Plumbing
             var watch = new Stopwatch();
             watch.Start();
 
-            using (GlimpseTimer.Start("IActionFilter OnActionExecuting:" + ActionFilter.GetType().Name, "MVC"))
+            using (GlimpseTimer.Start("Executing: Action Filter", "Filter", ActionFilter.GetType().Name))
             {
                 ActionFilter.OnActionExecuting(filterContext);
             }
@@ -41,7 +41,7 @@ namespace Glimpse.Mvc3.Plumbing
             watch.Start();
 
 
-            using (GlimpseTimer.Start("IActionFilter OnActionExecuted:" + ActionFilter.GetType().Name, "MVC"))
+            using (GlimpseTimer.Start("Executed: Action Filter", "Filter", ActionFilter.GetType().Name))
             {
                 ActionFilter.OnActionExecuted(filterContext);
             }

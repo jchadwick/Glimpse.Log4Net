@@ -24,22 +24,30 @@ namespace Glimpse.Core.Configuration
             set { this["address"] = value; }
         }
         
-        [ConfigurationProperty("address-range")]
+        [ConfigurationProperty("addressRange")]
         public string AddressRange
         {
             get
             {
-                if(string.IsNullOrEmpty(this["address-range"].ToString()))
+                if(string.IsNullOrEmpty(this["addressRange"].ToString()))
                     return null;
 
                 IPNetwork result;
 
-                if (IPNetwork.TryParse(this["address-range"].ToString(), out result))
+                if (IPNetwork.TryParse(this["addressRange"].ToString(), out result))
                     return result.ToString();
 
-                throw new ConfigurationErrorsException("Invalid IP address range found in glimpse\\ipAddresses: " + this["address-range"]);
+                throw new ConfigurationErrorsException("Invalid IP address range found in glimpse\\ipAddresses: " + this["addressRange"]);
             }
-            set { this["address-range"] = value; }
+            set { this["addressRange"] = value; }
+        }
+
+        public override string ToString()
+        {
+            if (string.IsNullOrEmpty(Address))
+                return AddressRange;
+
+            return Address;
         }
     }
 }

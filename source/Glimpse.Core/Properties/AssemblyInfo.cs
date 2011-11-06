@@ -14,8 +14,8 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: Guid("4e613cbe-2441-4dc4-a812-4e6bba03e25c")]
 
-[assembly: AssemblyVersion("0.85")]
-[assembly: AssemblyFileVersion("0.85")]
+[assembly: AssemblyVersion("0.86")]
+[assembly: AssemblyFileVersion("0.86")]
 
 //[assembly: PreApplicationStartMethod(typeof(PreApplicationStartCode), "Start")]
 [assembly: InternalsVisibleTo("Glimpse.Test.Core")]

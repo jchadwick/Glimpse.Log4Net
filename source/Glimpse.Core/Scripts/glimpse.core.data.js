@@ -1,10 +1,11 @@
 ﻿data = (function () {
     var //Support
-        inner = {},
+        inner = {}, 
     
-        //Main
+        //Main 
         update = function (data) {
-            inner = data;
+            inner = data; 
+
             pubsub.publish('action.data.update');
         },
         retrieve = function(requestId, callback) { 
@@ -18,8 +19,8 @@
                 contentType : 'application/json',
                 success : function (data, textStatus, jqXHR) {   
                     if (callback.success) 
-                        callback.success(requestId, data, current, textStatus, jqXHR);  
-                    update(data);
+                        callback.success(requestId, data, inner, textStatus, jqXHR);  
+                    update(data);  
                 }, 
                 complete : function (jqXHR, textStatus) {
                     if (callback.complete) 
@@ -27,12 +28,14 @@
                 }
             });
         },
+
         current = function () {
             return inner;
         },
         currentMetadata = function () {
             return inner.data._metadata;
         },
+
         init = function () {
             inner = glimpseData; 
         };
@@ -40,6 +43,7 @@
     init(); 
     
     return {
+//        stack : stack,
         current : current,
         currentMetadata : currentMetadata,
         update : update,

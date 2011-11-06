@@ -6,10 +6,8 @@
         isActive = false, 
         resultCount = 0,
         notice = undefined,
-        currentData = undefined,
         wireListener = function () {  
             glimpse.pubsub.subscribe('data.elements.processed', wireDomListeners); 
-            glimpse.pubsub.subscribe('state.build.prerender', setupData); 
             glimpse.pubsub.subscribe('action.plugin.deactive', function (topic, payload) { if (payload == 'Ajax') { deactive(); } }); 
             glimpse.pubsub.subscribe('action.plugin.active', function (topic, payload) {  if (payload == 'Ajax') { active(); } }); 
         },
@@ -17,37 +15,15 @@
             glimpse.elements.holder.find('.glimpse-clear-ajax').live('click', function () { clear(); return false; });
             
             var panel = glimpse.elements.findPanel('Ajax');
-            panel.find('tbody a').live('click', function () { selected($(this)); return false; });
+            panel.find('a').live('click', function () { return false; });
             panel.find('.glimpse-head-message a').live('click', function() { reset(); return false; });
         },
         setupData = function () {
-            var payload = glimpse.data.current(),
+            var data = glimpse.data.current().data,
                 metadata = glimpse.data.currentMetadata().plugins;
 
-            //If we are looking at an ajax request or reloading our original reuqest we want to keep
-            if (!payload.isAjax && (!currentData || currentData.requestId != payload.requestId)) {
-                currentData = payload;
-
-                payload.data.Ajax = { name: 'Ajax', data: 'No requests currently detected...' };
-                metadata.Ajax = { helpUrl: 'http://getglimpse.com/Help/Plugin/Ajax' };
-                
-                togglePermanent(false);
-            }
-            else 
-                togglePermanent(true);
-        },
-        
-        togglePermanent = function (makePermanent) {
-            if (glimpse.elements.findPanel) {
-                if (makePermanent) {
-                    glimpse.elements.findPanel('Ajax').addClass('glimpse-permanent');
-                    glimpse.elements.findTab('Ajax').addClass('glimpse-permanent');
-                }
-                else {
-                    glimpse.elements.findPanel('Ajax').removeClass('glimpse-permanent');
-                    glimpse.elements.findTab('Ajax').removeClass('glimpse-permanent');
-                }
-            }
+            data.Ajax = { name : 'Ajax', data : 'No requests currently detected...', isPermanent : true };
+            metadata.Ajax = { helpUrl : 'http://getglimpse.com/Help/Plugin/Ajax' };
         },
         
         active = function () {
@@ -65,12 +41,13 @@
         
         retreieveSummary = function () { 
             if (!isActive) { return; }
-
+            var data = glimpse.data.current().data;
+ 
             //Poll for updated summary data
             notice.prePoll(); 
             $.ajax({
                 url: glimpsePath + 'Ajax',
-                data: { 'glimpseId' : currentData.requestId },
+                data: { 'glimpseId' : data.requestId },
                 type: 'GET',
                 contentType: 'application/json',
                 complete : function(jqXHR, textStatus) {
@@ -91,59 +68,37 @@
             
             //Insert container table
             if (panel.find('table').length == 0) {
-                var data = [['Request URL', 'Method', 'Duration', 'Date/Time', 'View']],
-                    metadata = [[ { data : 0, key : true, width : '40%' }, { data : 1 }, { data : 2, width : '10%' },  { data : 3, width : '20%' },  { data : 4, width : '100px' } ]];
-                panel.html(glimpse.render.build(data, metadata)).find('table').append('<tbody></tbody>');
+                panel.html(glimpse.render.build([['Request URL', 'Method', 'Duration', 'Date/Time', 'View']])).find('table').append('<tbody></tbody>');
                 panel.find('thead').append('<tr class="glimpse-head-message" style="display:none"><td colspan="6"><a href="#">Reset context back to starting page</a></td></tr>');
             }
             
             //Prepend results as we go 
             for (var x = result.length; --x >= resultCount;) {
                 var item = result[x];
-                panel.find('tbody').prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td><a href="#" class="glimpse-ajax-link" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
+                panel.find('tbody').prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td><a href="#">Inspect</a></td></tr>');
             }
         },
-        
         clear = function () {
             glimpse.elements.findPanel('Ajax').html('<div class="glimpse-panel-message">No requests currently detected...</div>'); 
         },
-        
         reset = function () {
             var panel = glimpse.elements.findPanel('Ajax');
             panel.find('.glimpse-head-message').fadeOut();
             panel.find('.selected').removeClass('selected');
-             
-            glimpse.data.update(currentData);
         },
-        
-        selected = function (item) {
-            var requestId = item.attr('data-glimpseId');
-
-            item.hide().parent().append('<div class="loading glimpse-ajax-loading" data-glimpseId="' + requestId + '"><div class="icon"></div>Loading...</div>');
-
-            request(requestId);
+        request = function () {
         },
-        request = function (requestId) { 
-            glimpse.data.retrieve(requestId, {
-                success : function (requestId, data, current) {
-                    process(requestId);
-                }
-            });
-        },
-        process = function (requestId) {
-            var panel = glimpse.elements.findPanel('Ajax'),
-                loading = panel.find('.glimpse-ajax-loading[data-glimpseId="' + requestId + '"]'),
-                link = panel.find('.glimpse-ajax-link[data-glimpseId="' + requestId + '"]');
-
+        process = function (link) {
+            var panel = glimpse.elements.findPanel('Ajax');
             panel.find('.glimpse-head-message').fadeIn();
-            panel.find('.selected').removeClass('selected'); 
-            loading.fadeOut(100).delay(100).remove(); 
-            link.delay(100).fadeIn().parents('tr:first').addClass('selected');
+            panel.find('.selected').removeClass('selected');
+            link.parents('tr:first').addClass('selected'); 
         },
 
         //Main 
         init = function () {
-            wireListener(); 
+            wireListener();
+            setupData();
         };
 
     init();

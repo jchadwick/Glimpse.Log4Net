@@ -4,6 +4,7 @@ var glimpseTest = (function ($) {
         testHandlers = {},
 /*(import:test.glimpse.ajax.pager.js|2)*/,
 /*(import:test.glimpse.ajax.ajax.js|2)*/,
+/*(import:test.glimpse.ajax.history.js|2)*/,
         
         //Main
         retrieve = function (name) {
@@ -15,6 +16,7 @@ var glimpseTest = (function ($) {
         init = function () { 
             register("Pager", pager);
             register("Ajax", ajax);
+            register("History", history);
             //http://stackoverflow.com/questions/5272698/how-to-fake-jquery-ajax-response
             var original = $.ajax;
             $.ajax = function (param) { 
@@ -22,7 +24,7 @@ var glimpseTest = (function ($) {
                 if (handel)
                     handel.trigger(param);
                 else 
-                    $.ajax(param); 
+                    original(param); 
             };
         };
 

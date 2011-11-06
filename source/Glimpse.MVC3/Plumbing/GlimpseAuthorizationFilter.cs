@@ -21,7 +21,7 @@ namespace Glimpse.Mvc3.Plumbing
             var watch = new Stopwatch();
             watch.Start();
 
-            using (GlimpseTimer.Start("Executing IAuthorizationFilter " + AuthorizationFilter.GetType().Name, "MVC"))
+            using (GlimpseTimer.Start("Executing: Authorization Filter", "Filter", AuthorizationFilter.GetType().Name))
             {
                 AuthorizationFilter.OnAuthorization(filterContext);
             }

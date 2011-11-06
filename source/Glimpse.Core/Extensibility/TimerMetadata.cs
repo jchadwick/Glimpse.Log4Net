@@ -16,8 +16,10 @@ namespace Glimpse.Core.Extensibility
             Categories = new Dictionary<string, TimerCategory>
                            {
                                {"ASP.NET", new TimerCategory{EventColor = "#FD4545", EventColorHighlight = "#DD3131"}},
-                               {"MVC", new TimerCategory{EventColor = "#72A3E4", EventColorHighlight = "#5087CF"}},
-                               {"Database", new TimerCategory{EventColor = "#AF78DD", EventColorHighlight = "#823BBE"}}
+                               {"Filter", new TimerCategory{EventColor = "#72A3E4", EventColorHighlight = "#5087CF"}},
+                               //{"Database", new TimerCategory{EventColor = "#AF78DD", EventColorHighlight = "#823BBE"}},
+                               {"View", new TimerCategory{EventColor = "#10E309", EventColorHighlight = "#0EC41D"}},
+                               {"Controller", new TimerCategory{EventColor = "#FDBF45", EventColorHighlight = "#DDA431"}},
                            };
 
             //'Database' : { eventColor : '#AF78DD', eventColorHighlight : '#823BBE' }, //:{ event:'purple' },
@@ -26,19 +28,14 @@ namespace Glimpse.Core.Extensibility
         }
 
         [JsonProperty("duration")]
-        public long Duration
-        {
-            get
-            {
-                return Events.First().Duration;
-            }
-        }
+        public long Duration { get; set; }
 
         [JsonProperty("category")]
         public IDictionary<string, TimerCategory> Categories { get; set; }
         [JsonProperty("events")]
         public IList<TimerEvent> Events { get; set; }
         private Stopwatch Stopwatch { get; set; }
+        private long StartPoint { get; set; }
 
         public TimerEvent AddEvent(string message, string category = "ASP.NET", string description = null)
         {
@@ -46,8 +43,15 @@ namespace Glimpse.Core.Extensibility
                 Categories.Add(category, new TimerCategory{EventColor = "#BBB", EventColorHighlight = "#BBB"});
 
             var result = new TimerEvent(message, category, description, Stopwatch);
+            result.Stopped += (startPoint, duration) =>
+                                  {
+                                      var d = startPoint + duration - StartPoint;
+                                      Duration = (long)((int)d * 1.01);//TODO: Fix this hack to add right padding on timeline
+                                  };
 
             Events.Add(result);
+
+            if (Events.Count == 1) StartPoint = result.StartPoint;
 
             return result;
         }
@@ -86,6 +90,7 @@ namespace Glimpse.Core.Extensibility
         public IDictionary<string, string> Details { get; set; }
         private Stopwatch Stopwatch { get; set; }
         private bool IsStopped { get; set; }
+        internal event Action<long, long> Stopped;
 
         public void Stop()
         {
@@ -93,6 +98,7 @@ namespace Glimpse.Core.Extensibility
 
             Duration = Stopwatch.ElapsedMilliseconds - StartPoint;
             IsStopped = true;
+            if (Stopped != null) Stopped(StartPoint, Duration);
         }
 
         public void Dispose()

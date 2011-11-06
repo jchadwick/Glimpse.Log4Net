@@ -85,6 +85,7 @@ namespace Glimpse.Site.Controllers {
                 public readonly string Routes = "~/Views/Help/Plugins/Routes.cshtml";
                 public readonly string Server = "~/Views/Help/Plugins/Server.cshtml";
                 public readonly string Session = "~/Views/Help/Plugins/Session.cshtml";
+                public readonly string Timeline = "~/Views/Help/Plugins/Timeline.cshtml";
                 public readonly string Trace = "~/Views/Help/Plugins/Trace.cshtml";
                 public readonly string Views = "~/Views/Help/Plugins/Views.cshtml";
             }
