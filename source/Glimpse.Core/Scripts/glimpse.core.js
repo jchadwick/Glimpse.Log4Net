@@ -43,7 +43,8 @@ var glimpse = (function ($, scope) {
         elements : elements,
         render : renderEngine,
         objects : objects,
-        data : data 
+        data : data,
+        util : util
     };
 }($Glimpse, $Glimpse(document)));
 

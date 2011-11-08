@@ -39,7 +39,7 @@
             glimpse.elements.options.html('<div class="glimpse-notice gdisconnect"><div class="icon"></div><span>Disconnected...</span></div>');
             notice = new glimpse.objects.ConnectionNotice(glimpse.elements.options.find('.glimpse-notice')); 
             
-            //retreieveSummary(); 
+            retreieveSummary(); 
         },
         deactive = function () {
             isActive = false; 
@@ -47,15 +47,13 @@
             notice = null;
         }, 
         
-        /*
         retreieveSummary = function () { 
             if (!isActive) { return; }
 
             //Poll for updated summary data
             notice.prePoll(); 
-            $.History({
-                url: glimpsePath + 'History',
-                data: { 'glimpseId' : currentData.requestId },
+            $.ajax({
+                url: glimpsePath + 'History', 
                 type: 'GET',
                 contentType: 'application/json',
                 complete : function(jqXHR, textStatus) {
@@ -65,30 +63,43 @@
                 },
                 success: function (result) {
                     if (!isActive) { return; } 
-                    if (resultCount != result.length)
+                    //if (resultCount != result.length)
                         processSummary(result);
-                    resultCount = result.length; 
+                    //resultCount = result.length; 
                 }
             });
         },
         processSummary = function (result) { 
-            var panel = glimpse.elements.findPanel('History');
+            var panel = glimpse.elements.findPanel('History'),
+                summary = panel.find('.glimpse-col-side'),
+                x = 0;
             
             //Insert container table
             if (panel.find('table').length == 0) {
-                var data = [['Request URL', 'Method', 'Duration', 'Date/Time', 'View']],
-                    metadata = [[ { data : 0, key : true, width : '40%' }, { data : 1 }, { data : 2, width : '10%' },  { data : 3, width : '20%' },  { data : 4, width : '100px' } ]];
-                panel.html(glimpse.render.build(data, metadata)).find('table').append('<tbody></tbody>');
-                panel.find('thead').append('<tr class="glimpse-head-message" style="display:none"><td colspan="6"><a href="#">Reset context back to starting page</a></td></tr>');
+                var data = [['Client', 'Count', 'View']];
+                summary.html(glimpse.render.build(data, metadata)).find('table').append('<tbody></tbody>');
+                summary.find('thead').append('<tr class="glimpse-head-message" style="display:none"><td colspan="6"><a href="#">Reset context back to starting page</a></td></tr>');
             }
             
             //Prepend results as we go 
+            for (var recordName in result) {
+                var summaryBody = summary.find('tbody'),
+                    summaryRow = summaryBody.find('a[data-clientname="' + recordName + '"]').parents('tr:first');
+
+                if (summaryRow.length == 0)
+                    summaryRow = $('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '" data><td>' + recordName + '</td><td class="glimpse-history-count">1</td><td><a href="#" class="glimpse-Client-link" data-clientname="' + recordName + '">Inspect</a></td></tr>').prependTo(summary.find('tbody'));
+                summaryRow.find('.glimpse-history-count').text(glimpse.util.lengthJson(result[recordName]));
+            }
+            
+            /*
             for (var x = result.length; --x >= resultCount;) {
                 var item = result[x];
                 panel.find('tbody').prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td><a href="#" class="glimpse-History-link" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
             }
+            */
         },
         
+        /*
         clear = function () {
             glimpse.elements.findPanel('History').html('<div class="glimpse-panel-message">No requests currently detected...</div>'); 
         },
