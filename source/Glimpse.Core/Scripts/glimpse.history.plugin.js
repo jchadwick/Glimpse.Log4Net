@@ -3,8 +3,7 @@
 /*(im port:glimpse.History.spy.js|2)*/ 
     
     var //Support
-        isActive = false, 
-        resultCount = 0,
+        isActive = false,  
         notice = undefined,
         currentData = undefined,
         wireListener = function () {  
@@ -84,7 +83,7 @@
                 if (summaryRow.length == 0)
                     summaryRow = $('<tr class="' + (rowCount % 2 == 0 ? 'even' : 'odd') + '" data><td>' + recordName + '</td><td class="glimpse-history-count">1</td><td><a href="#" class="glimpse-Client-link" data-clientName="' + recordName + '">Inspect</a></td></tr>').prependTo(summaryBody);
                 
-                summaryRow.find('.glimpse-history-count').text(glimpse.util.lengthJson(result[recordName]));
+                summaryRow.find('.glimpse-history-count').text(result[recordName].length);
                 
                 if (rowCount == 0) 
                     selectedSession(recordName);
@@ -103,9 +102,11 @@
             main.html(glimpse.render.build(mainData, mainMetadata)).find('table').append('<tbody></tbody>');
             main.find('thead').append('<tr class="glimpse-head-message" style="display:none"><td colspan="6"><a href="#">Reset context back to starting page</a></td></tr>');
                 
-            summary.html(glimpse.render.build(summaryData)).find('table').append('<tbody></tbody>');
-            
+            summary.html(glimpse.render.build(summaryData)).find('table').append('<tbody></tbody>'); 
         },
+        
+        
+        
         
         selectedSession = function (clientName) {
             var panel = glimpse.elements.findPanel('History'),
@@ -115,16 +116,32 @@
             panel.find('.selected').removeClass('selected'); 
             item.parents('tr:first').addClass('selected');
             
-            processSession(clientData);
+            processSession(clientName, clientData);
         },
-        processSession = function (clientData) {
-            console.log(clientData);
+        processSession = function (clientName, clientData) {
+            var panel = glimpse.elements.findPanel('History'),
+                mainBody = panel.find('.glimpse-col-main tbody');
+            
+            if (context.clientName != clientName) {
+                context.resultCount = 0;
+                mainBody.empty();
+            }
+            
+            for (var x = clientData.length; --x >= context.resultCount;) {
+                var item = clientData[x];
+                mainBody.prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td>' + item.isAjax + '</td><td><a href="#" class="glimpse-ajax-link" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
+            }
         },
+        
+        
+        context = { resultCount : 0, clientName : '', requestId : '' },
+        
+        
         
         selected = function (item) {
             var requestId = item.attr('data-glimpseId');
 
-            item.hide().parent().append('<div class="loading glimpse-History-loading" data-glimpseId="' + requestId + '"><div class="icon"></div>Loading...</div>');
+            item.hide().parent().append('<div class="loading glimpse-history-loading" data-glimpseId="' + requestId + '"><div class="icon"></div>Loading...</div>');
 
             request(requestId);
         },
@@ -137,8 +154,10 @@
         }, 
         process = function (requestId) {
             var panel = glimpse.elements.findPanel('History'),
-                loading = panel.find('.glimpse-History-loading[data-glimpseId="' + requestId + '"]'),
-                link = panel.find('.glimpse-History-link[data-glimpseId="' + requestId + '"]');
+                loading = panel.find('.glimpse-history-loading[data-glimpseId="' + requestId + '"]'),
+                link = panel.find('.glimpse-history-link[data-glimpseId="' + requestId + '"]');
+            
+            context.requestId = requestId;
 
             panel.find('.glimpse-head-message').fadeIn();
             panel.find('.selected').removeClass('selected'); 
