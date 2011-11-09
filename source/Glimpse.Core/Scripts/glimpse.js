@@ -1757,8 +1757,7 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
         currentData = undefined,
         wireListener = function () {  
             glimpse.pubsub.subscribe('data.elements.processed', wireDomListeners); 
-            glimpse.pubsub.subscribe('state.build.prerender', setupData); 
-            glimpse.pubsub.subscribe('action.plugin.created', function (topic, payload) { if (payload == 'History') { setup(); } });
+            glimpse.pubsub.subscribe('state.build.prerender', setupData);  
             glimpse.pubsub.subscribe('action.plugin.deactive', function (topic, payload) { if (payload == 'History') { deactive(); } }); 
             glimpse.pubsub.subscribe('action.plugin.active', function (topic, payload) {  if (payload == 'History') { active(); } }); 
         },
@@ -1767,7 +1766,7 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
             
             var panel = glimpse.elements.findPanel('History');
             panel.find('.glimpse-col-main tbody a').live('click', function () { selected($(this)); return false; });
-            panel.find('.glimpse-col-side tbody a').live('click', function () { selectedSession($(this)); return false; });
+            panel.find('.glimpse-col-side tbody a').live('click', function () { selectedSession($(this).attr('data-clientName')); return false; });
             panel.find('.glimpse-col-side .glimpse-head-message a').live('click', function() { reset(); return false; });
         },
         setupData = function () {
@@ -1777,11 +1776,7 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
             payload.data.History = { name: 'History', data: 'No requests currently detected...', isPermanent : true };
             metadata.History = { helpUrl: 'http://getglimpse.com/Help/Plugin/Remote' }; 
         },
-        
-        setup = function () {
-            var panel = glimpse.elements.findPanel('History'); 
-            panel.html('<div class="glimpse-col-main"></div><div class="glimpse-col-side"></div>');
-        },
+         
         active = function () {
             isActive = true;
             glimpse.elements.options.html('<div class="glimpse-notice gdisconnect"><div class="icon"></div><span>Disconnected...</span></div>');
@@ -1818,38 +1813,51 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
             });
         },
         processSummary = function (result) { 
-            var panel = glimpse.elements.findPanel('History'),
-                summary = panel.find('.glimpse-col-side'),
-                main = panel.find('.glimpse-col-main');
+            var panel = glimpse.elements.findPanel('History');
+            
+            //Store the current result
+            currentData = result;
             
             //Insert container table
-            if (panel.find('table').length == 0) {
-                var summaryData = [['Client', 'Count', 'View']],
-                    mainData = [['Request URL', 'Method', 'Duration', 'Date/Time', 'Is Ajax', 'View']],
-                    mainMetadata = [[ { data : 0, key : true, width : '30%' }, { data : 1 }, { data : 2, width : '10%' }, { data : 3, width : '20%' }, { data : 4, width : '10%' }, { data : 5, width : '100px' } ]];
-                
-                main.html(glimpse.render.build(mainData, mainMetadata)).find('table').append('<tbody></tbody>');
-                main.find('thead').append('<tr class="glimpse-head-message" style="display:none"><td colspan="6"><a href="#">Reset context back to starting page</a></td></tr>');
-                
-                summary.html(glimpse.render.build(summaryData)).find('table').append('<tbody></tbody>');
-            }
+            if (panel.find('table').length == 0) 
+                renderLayout(panel);
             
             //Prepend results as we go  
+            var summary = panel.find('.glimpse-col-side');
             for (var recordName in result) {
                 var summaryBody = summary.find('tbody'),
-                    summaryRow = summaryBody.find('a[data-clientName="' + recordName + '"]').parents('tr:first');
+                    summaryRow = summaryBody.find('a[data-clientName="' + recordName + '"]').parents('tr:first'),
+                    rowCount = summaryBody.find('tr').length;
 
                 if (summaryRow.length == 0)
-                    summaryRow = $('<tr class="' + (summaryBody.find('tr').length % 2 == 0 ? 'even' : 'odd') + '" data><td>' + recordName + '</td><td class="glimpse-history-count">1</td><td><a href="#" class="glimpse-Client-link" data-clientName="' + recordName + '">Inspect</a></td></tr>').prependTo(summaryBody);
+                    summaryRow = $('<tr class="' + (rowCount % 2 == 0 ? 'even' : 'odd') + '" data><td>' + recordName + '</td><td class="glimpse-history-count">1</td><td><a href="#" class="glimpse-Client-link" data-clientName="' + recordName + '">Inspect</a></td></tr>').prependTo(summaryBody);
+                
                 summaryRow.find('.glimpse-history-count').text(glimpse.util.lengthJson(result[recordName]));
-            } 
-            
-            currentData = result;
+                
+                if (rowCount == 0) 
+                    selectedSession(recordName);
+            }  
         },
         
-        selectedSession = function (item) {
+        renderLayout = function (panel) {
+            panel.html('<div class="glimpse-col-main"></div><div class="glimpse-col-side"></div>');
+            
+            var main = panel.find('.glimpse-col-main'),
+                summary = panel.find('.glimpse-col-side'),
+                summaryData = [['Client', 'Count', 'View']],
+                mainData = [['Request URL', 'Method', 'Duration', 'Date/Time', 'Is Ajax', 'View']],
+                mainMetadata = [[ { data : 0, key : true, width : '30%' }, { data : 1 }, { data : 2, width : '10%' }, { data : 3, width : '20%' }, { data : 4, width : '10%' }, { data : 5, width : '100px' } ]];
+                
+            main.html(glimpse.render.build(mainData, mainMetadata)).find('table').append('<tbody></tbody>');
+            main.find('thead').append('<tr class="glimpse-head-message" style="display:none"><td colspan="6"><a href="#">Reset context back to starting page</a></td></tr>');
+                
+            summary.html(glimpse.render.build(summaryData)).find('table').append('<tbody></tbody>');
+            
+        },
+        
+        selectedSession = function (clientName) {
             var panel = glimpse.elements.findPanel('History'),
-                clientName = item.attr('data-clientName'),
+                item = panel.find('a[data-clientName="' + clientName + '"]'), 
                 clientData = currentData[clientName];
             
             panel.find('.selected').removeClass('selected'); 
