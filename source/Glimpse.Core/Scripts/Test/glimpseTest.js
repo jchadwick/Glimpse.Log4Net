@@ -110,7 +110,7 @@ var glimpseTest = (function ($) {
                 trackerData = {},
         
                 radomResponse = function() { 
-                    var mainIndex = random(10);
+                    var mainIndex = random(5);
                     if (mainIndex < 3) {
                         var tackedItem = tracker[mainIndex];
                         if (tackedItem.count < tackedItem.max) { 

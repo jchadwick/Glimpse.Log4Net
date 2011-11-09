@@ -433,10 +433,10 @@
 	right: 0px;
 	top: 0px;
 }
-.glimpse-panel .glimpse-col-side .even, .glimpse-panel .glimpse-col-side .even > td {
+.glimpse-col-side .even, .glimpse-col-side .even > td {
 	background-color: #E1E7F0;
 }
-.glimpse-panel .glimpse-col-side .odd, .glimpse-panel .glimpse-col-side .odd > td {
+.glimpse-col-side .odd, .glimpse-col-side .odd > td {
 	background-color: #F2F5F7;
 }
 .glimpse-panel-holder .glimpse-active {
