@@ -44,7 +44,7 @@
         trackerData = {},
 
         radomResponse = function() { 
-            var mainIndex = random(5);
+            var mainIndex = random(4);
             if (mainIndex < 3) {
                 var tackedItem = tracker[mainIndex];
                 if (tackedItem.count < tackedItem.max) { 

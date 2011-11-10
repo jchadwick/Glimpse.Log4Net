@@ -57,14 +57,13 @@
                 },
                 success: function (result) {
                     if (!isActive) { return; } 
-                    //if (resultCount != result.length)
-                        processSummary(result);
-                    //resultCount = result.length; 
+                    processSummary(result);
                 }
             });
         },
         processSummary = function (result) { 
-            var panel = glimpse.elements.findPanel('History');
+            var panel = glimpse.elements.findPanel('History'),
+                selected = false;
             
             //Store the current result
             currentData = result;
@@ -85,9 +84,14 @@
                 
                 summaryRow.find('.glimpse-history-count').text(result[recordName].length);
                 
-                if (rowCount == 0) 
+                if (rowCount == 0) {
+                    selected = true;
                     selectedSession(recordName);
+                }
             }  
+
+            if (!selected)
+                tryProcessSession(result);
         },
         
         renderLayout = function (panel) {
@@ -131,6 +135,14 @@
                 var item = clientData[x];
                 mainBody.prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td>' + item.isAjax + '</td><td><a href="#" class="glimpse-ajax-link" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
             }
+            context.resultCount = clientData.length;
+            context.clientName = clientName;
+        },
+        tryProcessSession = function (result) {
+            var clientData = result[context.clientName];
+
+            if (context.resultCount != result.length) 
+                processSession(context.clientName, clientData); 
         },
         
         
