@@ -17,8 +17,8 @@ namespace MvcMusicStore.Controllers
 
     public partial class HomeController : Controller
     {
-        //
-        // GET: /Home/
+        private static readonly log4net.ILog Log = log4net.LogManager.GetLogger(typeof (HomeController));
+
         MusicStoreEntities storeDB = new MusicStoreEntities();
 
         [HttpPost]
@@ -39,15 +39,17 @@ namespace MvcMusicStore.Controllers
             GlimpseTrace.Error("This is error from {0}", GetType());
             GlimpseTrace.Fail("This is Fail from Glimpse");
 
-            GlimpseTimer.Moment("Custom timming event from HomeController", "Custom");
+            Log.Debug("This is a log4net debug message");
+            Log.Info("This is a log4net info message");
+            Log.Warn("This is a log4net warn message");
+            Log.Error("This is a log4net error message");
+            Log.Fatal("This is a log4net fatal message");
+
+            GlimpseTimer.Moment("Custom timing event from HomeController", "Custom");
 
             Trace.TraceWarning("Test TraceWarning;");
             Trace.TraceError("Test TraceError;");
             Trace.TraceInformation("Test TraceInformation;"); 
-
-
-
-            //GlimpseTimer.Moment("A Moment", "Other", "This is just a moment in time.");
 
 
             TempData["Test"] = "A bit of temp";
