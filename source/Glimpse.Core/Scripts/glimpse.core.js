@@ -56,5 +56,5 @@ $Glimpse(document).ready(function() {
     console.log('Total execution time: ' + (end - start));
 });
 
-/*(import:glimpse.ajax.plugin.js)*/
-/*(import:glimpse.history.plugin.js)*/
+/*(import:glimpse.plugin.ajax.js)*/
+/*(import:glimpse.plugin.history.js)*/

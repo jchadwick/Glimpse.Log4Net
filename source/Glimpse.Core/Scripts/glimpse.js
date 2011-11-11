@@ -1597,7 +1597,7 @@ $Glimpse(document).ready(function() {
 
 var glimpseAjaxPlugin = (function ($, glimpse) {
 
-/*(im port:glimpse.ajax.spy.js|2)*/ 
+/*(im port:glimpse.plugin.ajax.spy.js|2)*/ 
     
     var //Support
         isActive = false, 
@@ -1770,7 +1770,7 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
             var panel = glimpse.elements.findPanel('History');
             panel.find('.glimpse-col-main tbody a').live('click', function () { selected($(this)); return false; });
             panel.find('.glimpse-col-side tbody a').live('click', function () { selectedSession($(this).attr('data-clientName')); return false; });
-            panel.find('.glimpse-col-side .glimpse-head-message a').live('click', function() { reset(); return false; });
+            panel.find('.glimpse-col-main .glimpse-head-message a').live('click', function() { reset(); return false; });
         },
         setupData = function () {
             var payload = glimpse.data.current(),
@@ -1918,29 +1918,27 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
         }, 
         process = function (requestId) {
             var panel = glimpse.elements.findPanel('History'),
+                main = panel.find('.glimpse-col-main'), 
                 loading = panel.find('.glimpse-history-loading[data-glimpseId="' + requestId + '"]'),
                 link = panel.find('.glimpse-history-link[data-glimpseId="' + requestId + '"]');
             
             context.requestId = requestId;
 
-            panel.find('.glimpse-head-message').fadeIn();
-            panel.find('.selected').removeClass('selected'); 
+            main.find('.glimpse-head-message').fadeIn();
+            main.find('.selected').removeClass('selected'); 
             loading.fadeOut(100).delay(100).remove(); 
             link.delay(100).fadeIn().parents('tr:first').addClass('selected');
         },
-        /*
-        clear = function () {
-            glimpse.elements.findPanel('History').html('<div class="glimpse-panel-message">No requests currently detected...</div>'); 
-        },
         
         reset = function () {
-            var panel = glimpse.elements.findPanel('History');
-            panel.find('.glimpse-head-message').fadeOut();
-            panel.find('.selected').removeClass('selected');
+            var panel = glimpse.elements.findPanel('History'),
+                main = panel.find('.glimpse-col-main');
+
+            main.find('.glimpse-head-message').fadeOut();
+            main.find('.selected').removeClass('selected');
              
             glimpse.data.update(currentData);
-        },
-        */
+        }, 
 
         //Main 
         init = function () {

@@ -1,6 +1,6 @@
 ﻿var glimpseAjaxPlugin = (function ($, glimpse) {
 
-/*(im port:glimpse.ajax.spy.js|2)*/ 
+/*(im port:glimpse.plugin.ajax.spy.js|2)*/ 
     
     var //Support
         isActive = false, 
