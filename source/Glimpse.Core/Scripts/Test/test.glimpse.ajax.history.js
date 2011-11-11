@@ -62,8 +62,11 @@
             setTimeout(function () { 
                 var response; 
                 if (param.data && param.data.ClientRequestID) { 
-                    param.complete();
-                    response = requests1[param.data.ClientRequestID];
+                    param.complete();  
+                    for (var i = 0; i < requests1.length ; i++) {
+                        if (requests1[i].requestId == param.data.ClientRequestID)
+                            response = requests1[i];
+                    }
                     if (response) {
                         response.data = {};
                         response.data[response.type] = data[response.type];

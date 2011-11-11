@@ -63,7 +63,7 @@
         },
         processSummary = function (result) { 
             var panel = glimpse.elements.findPanel('History'),
-                selected = false;
+                didAutoSelect = false;
             
             //Store the current result
             currentData = result;
@@ -85,12 +85,12 @@
                 summaryRow.find('.glimpse-history-count').text(result[recordName].length);
                 
                 if (rowCount == 0) {
-                    selected = true;
+                    didAutoSelect = true;
                     selectedSession(recordName);
                 }
             }  
 
-            if (!selected)
+            if (!didAutoSelect)
                 tryProcessSession(result);
         },
         
@@ -133,7 +133,7 @@
             
             for (var x = clientData.length; --x >= context.resultCount;) {
                 var item = clientData[x];
-                mainBody.prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td>' + item.isAjax + '</td><td><a href="#" class="glimpse-ajax-link" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
+                mainBody.prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td>' + item.isAjax + '</td><td><a href="#" class="glimpse-history-link" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
             }
             context.resultCount = clientData.length;
             context.clientName = clientName;

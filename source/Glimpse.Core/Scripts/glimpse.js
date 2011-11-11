@@ -1677,9 +1677,7 @@ var glimpseAjaxPlugin = (function ($, glimpse) {
                 },
                 success: function (result) {
                     if (!isActive) { return; } 
-                    if (resultCount != result.length)
-                        processSummary(result);
-                    resultCount = result.length; 
+                    tryProcessSummary(result);
                 }
             });
         },
@@ -1700,6 +1698,12 @@ var glimpseAjaxPlugin = (function ($, glimpse) {
                 var item = result[x];
                 panelBody.prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td><a href="#" class="glimpse-ajax-link" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
             }
+            
+            resultCount = result.length; 
+        }, 
+        tryProcessSummary = function (result) {
+            if (resultCount != result.length)
+                processSummary(result);
         },
         
         clear = function () {
@@ -1811,7 +1815,7 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
         },
         processSummary = function (result) { 
             var panel = glimpse.elements.findPanel('History'),
-                selected = false;
+                didAutoSelect = false;
             
             //Store the current result
             currentData = result;
@@ -1833,12 +1837,12 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
                 summaryRow.find('.glimpse-history-count').text(result[recordName].length);
                 
                 if (rowCount == 0) {
-                    selected = true;
+                    didAutoSelect = true;
                     selectedSession(recordName);
                 }
             }  
 
-            if (!selected)
+            if (!didAutoSelect)
                 tryProcessSession(result);
         },
         
@@ -1881,7 +1885,7 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
             
             for (var x = clientData.length; --x >= context.resultCount;) {
                 var item = clientData[x];
-                mainBody.prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td>' + item.isAjax + '</td><td><a href="#" class="glimpse-ajax-link" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
+                mainBody.prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td>' + item.isAjax + '</td><td><a href="#" class="glimpse-history-link" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
             }
             context.resultCount = clientData.length;
             context.clientName = clientName;
