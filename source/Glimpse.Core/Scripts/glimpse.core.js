@@ -58,3 +58,4 @@ $Glimpse(document).ready(function() {
 
 /*(import:glimpse.plugin.ajax.js)*/
 /*(import:glimpse.plugin.history.js)*/
+/*(import:google-code-prettify.js)*/

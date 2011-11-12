@@ -172,6 +172,8 @@
     <Compile Include="Sanitizer\CSharpSanitizer.cs" />
     <Compile Include="Warning\SerializationWarning.cs" />
     <Compile Include="Warning\Warning.cs" />
+    <Content Include="Scripts\glimpse.view.shell.code.css" />
+    <Content Include="Scripts\google-code-prettify.js" />
     <Content Include="Scripts\Test\test.glimpse.ajax.history.js" />
     <Content Include="Scripts\Test\test.glimpse.ajax.ajax.js" />
     <Content Include="Scripts\Test\glimpseTest.js" />

@@ -141,7 +141,7 @@
         tryProcessSession = function (result) {
             var clientData = result[context.clientName];
 
-            if (context.resultCount != result.length) 
+            if (clientData && context.resultCount != result.length) 
                 processSession(context.clientName, clientData); 
         },
         
