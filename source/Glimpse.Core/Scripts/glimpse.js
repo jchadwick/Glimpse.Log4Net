@@ -309,6 +309,7 @@ var glimpse = (function ($, scope) {
         data = (function () {
             var //Support
                 inner = {}, 
+                base = {},
             
                 //Main 
                 update = function (data) {
@@ -316,7 +317,10 @@ var glimpse = (function ($, scope) {
         
                     pubsub.publish('action.data.update');
                 },
-                retrieve = function(requestId, callback) { 
+                reset = function () {
+                    update(base);
+                },
+                retrieve = function (requestId, callback) { 
                     if (callback.start)
                         callback.start(requestId);
         
@@ -346,16 +350,17 @@ var glimpse = (function ($, scope) {
         
                 init = function () {
                     inner = glimpseData; 
+                    base = glimpseData; 
                 };
                 
             init(); 
             
-            return {
-        //        stack : stack,
+            return { 
                 current : current,
                 currentMetadata : currentMetadata,
                 update : update,
-                retrieve : retrieve
+                retrieve : retrieve,
+                reset : reset
             };
         }()),
         process = function () {
@@ -1756,12 +1761,11 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
     
     var //Support
         isActive = false,  
-        notice = undefined,
-        baseData = undefined,
+        notice = undefined, 
         currentData = undefined,
         wireListener = function () {  
             glimpse.pubsub.subscribe('data.elements.processed', wireDomListeners); 
-            glimpse.pubsub.subscribe('state.build.prerender', setupData);  
+            glimpse.pubsub.subscribe('state.build.shell', setupData);  
             glimpse.pubsub.subscribe('action.plugin.deactive', function (topic, payload) { if (payload == 'History') { deactive(); } }); 
             glimpse.pubsub.subscribe('action.plugin.active', function (topic, payload) {  if (payload == 'History') { active(); } }); 
         },
@@ -1778,10 +1782,7 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
                 metadata = glimpse.data.currentMetadata().plugins;
                  
             payload.data.History = { name: 'History', data: 'No requests currently detected...', isPermanent : true };
-            metadata.History = { helpUrl: 'http://getglimpse.com/Help/Plugin/Remote' }; 
-
-            if (!baseData)
-                baseData = payload;
+            metadata.History = { helpUrl: 'http://getglimpse.com/Help/Plugin/Remote' };  
         },
          
         active = function () {
@@ -1941,7 +1942,7 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
             main.find('.glimpse-head-message').fadeOut();
             main.find('.selected').removeClass('selected');
              
-            glimpse.data.update(baseData);
+            glimpse.data.reset();
         }, 
 
         //Main 
