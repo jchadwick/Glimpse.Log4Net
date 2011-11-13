@@ -92,6 +92,7 @@
             pubsub.publish('state.render');  
         },
         renderLayout = function () { 
+            pubsub.publish('action.data.applied');
             pubsub.publish('state.build.prerender');
             
             clearPreviousLayout();

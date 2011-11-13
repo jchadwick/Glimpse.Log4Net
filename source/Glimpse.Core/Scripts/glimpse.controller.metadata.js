@@ -13,8 +13,8 @@
         //Main
         renderMetadata = function() {
             var html = '<div class="glimpse-panel glimpse-panelitem-' + metadataKey + '" data-glimpseKey="' + metadataKey + '">' + template.metadata + '</div>';
-            return panel = $(html).appendTo(elements.panelHolder);
-        }
+            return $(html).appendTo(elements.panelHolder);
+        },
         metadata = function () {
             var panel = elements.panelHolder.find('.glimpse-panel[data-glimpseKey="' + metadataKey + '"]');  
             if (panel.length == 0) {

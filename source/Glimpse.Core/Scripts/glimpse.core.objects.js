@@ -1,11 +1,11 @@
 ﻿objects = function () { 
-    var //Constructors
-        ConnectionNotice = function (scope) {
+    var ConnectionNotice = function (scope) {
             var that = (this === window) ? {} : this;
             that.scope = scope;
             that.text = scope.find('span');
             return that;
         };
+    
     ConnectionNotice.prototype = {
         connected : false, 
         prePoll : function () {
@@ -32,5 +32,5 @@
     
     return {
         ConnectionNotice : ConnectionNotice
-    }
+    };
 } ()

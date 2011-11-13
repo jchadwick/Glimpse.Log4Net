@@ -5,11 +5,12 @@
     var //Support
         isActive = false, 
         resultCount = 0,
-        notice = undefined,
-        currentData = undefined,
+        notice = undefined, 
+        currentId = undefined,
         wireListener = function () {  
             glimpse.pubsub.subscribe('data.elements.processed', wireDomListeners); 
-            glimpse.pubsub.subscribe('state.build.prerender', setupData); 
+            glimpse.pubsub.subscribe('state.build.shell', setupData);
+            glimpse.pubsub.subscribe('action.data.applied', contextChanged);
             glimpse.pubsub.subscribe('action.plugin.deactive', function (topic, payload) { if (payload == 'Ajax') { deactive(); } }); 
             glimpse.pubsub.subscribe('action.plugin.active', function (topic, payload) {  if (payload == 'Ajax') { active(); } }); 
         },
@@ -20,35 +21,14 @@
             panel.find('tbody a').live('click', function () { selected($(this)); return false; });
             panel.find('.glimpse-head-message a').live('click', function() { reset(); return false; });
         },
+        
         setupData = function () {
             var payload = glimpse.data.current(),
                 metadata = glimpse.data.currentMetadata().plugins;
-
-            //If we are looking at an ajax request or reloading our original reuqest we want to keep
-            if (!payload.isAjax && (!currentData || currentData.requestId != payload.requestId)) {
-                currentData = payload;
-
-                payload.data.Ajax = { name: 'Ajax', data: 'No requests currently detected...' };
-                metadata.Ajax = { helpUrl: 'http://getglimpse.com/Help/Plugin/Ajax' };
-                
-                togglePermanent(false);
-            }
-            else 
-                togglePermanent(true);
-        },
-        
-        togglePermanent = function (makePermanent) {
-            if (glimpse.elements.findPanel) {
-                if (makePermanent) {
-                    glimpse.elements.findPanel('Ajax').addClass('glimpse-permanent');
-                    glimpse.elements.findTab('Ajax').addClass('glimpse-permanent');
-                }
-                else {
-                    glimpse.elements.findPanel('Ajax').removeClass('glimpse-permanent');
-                    glimpse.elements.findTab('Ajax').removeClass('glimpse-permanent');
-                }
-            }
-        },
+                 
+            payload.data.Ajax = { name: 'Ajax', data: 'No requests currently detected...', isPermanent : true };
+            metadata.Ajax = { helpUrl: 'http://getglimpse.com/Help/Plugin/Ajax' }; 
+        }, 
         
         active = function () {
             isActive = true;
@@ -62,6 +42,16 @@
             glimpse.elements.options.html('');
             notice = null;
         }, 
+        contextChanged = function () {
+            var payload = glimpse.data.current(),
+                newId = payload.isAjax ? payload.parentId : payload.requestId,
+                panel = glimpse.elements.findPanel('Ajax');
+
+            if (currentId != newId)
+                panel.find('tbody').empty();
+            
+            currentId = newId;
+        },
         
         retreieveSummary = function () { 
             if (!isActive) { return; }
@@ -70,7 +60,7 @@
             notice.prePoll(); 
             $.ajax({
                 url: glimpsePath + 'Ajax',
-                data: { 'glimpseId' : currentData.requestId },
+                data: { 'glimpseId' : currentId },
                 type: 'GET',
                 contentType: 'application/json',
                 complete : function(jqXHR, textStatus) {
@@ -118,7 +108,7 @@
             panel.find('.glimpse-head-message').fadeOut();
             panel.find('.selected').removeClass('selected');
              
-            glimpse.data.update(currentData);
+            glimpse.data.retrieve(currentId);
         },
         
         selected = function (item) {
