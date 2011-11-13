@@ -4,8 +4,7 @@
     
     var //Support
         isActive = false,  
-        notice = undefined,
-        baseData = undefined,
+        notice = undefined, 
         currentData = undefined,
         wireListener = function () {  
             glimpse.pubsub.subscribe('data.elements.processed', wireDomListeners); 
@@ -26,10 +25,7 @@
                 metadata = glimpse.data.currentMetadata().plugins;
                  
             payload.data.History = { name: 'History', data: 'No requests currently detected...', isPermanent : true };
-            metadata.History = { helpUrl: 'http://getglimpse.com/Help/Plugin/Remote' }; 
-
-            if (!baseData)
-                baseData = payload;
+            metadata.History = { helpUrl: 'http://getglimpse.com/Help/Plugin/Remote' };  
         },
          
         active = function () {
@@ -189,7 +185,7 @@
             main.find('.glimpse-head-message').fadeOut();
             main.find('.selected').removeClass('selected');
              
-            glimpse.data.update(baseData);
+            glimpse.data.reset();
         }, 
 
         //Main 

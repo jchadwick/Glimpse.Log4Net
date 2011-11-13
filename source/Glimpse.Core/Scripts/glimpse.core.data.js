@@ -1,6 +1,7 @@
 ﻿data = (function () {
     var //Support
         inner = {}, 
+        base = {},
     
         //Main 
         update = function (data) {
@@ -8,7 +9,10 @@
 
             pubsub.publish('action.data.update');
         },
-        retrieve = function(requestId, callback) { 
+        reset = function () {
+            update(base);
+        },
+        retrieve = function (requestId, callback) { 
             if (callback.start)
                 callback.start(requestId);
 
@@ -38,15 +42,16 @@
 
         init = function () {
             inner = glimpseData; 
+            base = glimpseData; 
         };
         
     init(); 
     
-    return {
-//        stack : stack,
+    return { 
         current : current,
         currentMetadata : currentMetadata,
         update : update,
-        retrieve : retrieve
+        retrieve : retrieve,
+        reset : reset
     };
 }())
