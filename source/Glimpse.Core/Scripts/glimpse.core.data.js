@@ -42,7 +42,7 @@
             return inner;
         },
         currentMetadata = function () {
-            return inner.data._metadata;
+            return inner.metadata;
         },
 
         init = function () {

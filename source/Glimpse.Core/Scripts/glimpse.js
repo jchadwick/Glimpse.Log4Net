@@ -350,7 +350,7 @@ var glimpse = (function ($, scope) {
                     return inner;
                 },
                 currentMetadata = function () {
-                    return inner.data._metadata;
+                    return inner.metadata;
                 },
         
                 init = function () {
@@ -1728,9 +1728,7 @@ var glimpseAjaxPlugin = (function ($, glimpse) {
         },
         request = function (requestId) { 
             glimpse.data.retrieve(requestId, {
-                success : function (requestId, data, current) {
-                    process(requestId);
-                }
+                success : function (requestId) { process(requestId); }
             });
         },
         process = function (requestId) {

@@ -120,9 +120,7 @@
         },
         request = function (requestId) { 
             glimpse.data.retrieve(requestId, {
-                success : function (requestId, data, current) {
-                    process(requestId);
-                }
+                success : function (requestId) { process(requestId); }
             });
         },
         process = function (requestId) {
