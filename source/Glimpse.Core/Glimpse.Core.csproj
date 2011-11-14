@@ -109,7 +109,9 @@
     <Compile Include="Plumbing\GlimpseSerializer.cs" />
     <Compile Include="Plumbing\InProcStackMetadataStore.cs" />
     <Content Include="Scripts\glimpse.plugin.history.js" />
+    <Content Include="Scripts\glimpse.plugin.timeline.core.js" />
     <Content Include="Scripts\glimpse.plugin.timeline.js" />
+    <Content Include="Scripts\glimpse.plugin.timeline.shell.html" />
     <Content Include="Scripts\glimpse.remote.plugin.js" />
     <Content Include="Scripts\glimpse.plugin.ajax.js" />
     <Content Include="Scripts\glimpse.controller.lazyloader.js" />

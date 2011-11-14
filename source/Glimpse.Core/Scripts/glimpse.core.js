@@ -43,7 +43,9 @@ var glimpse = (function ($, scope) {
         elements : elements,
         render : renderEngine,
         objects : objects,
-        data : data
+        data : data,
+        util : util,
+        settings : settings
     };
 }($Glimpse, $Glimpse(document)));
 
@@ -58,4 +60,5 @@ $Glimpse(document).ready(function() {
 
 /*(import:glimpse.plugin.ajax.js)*/
 /*(import:glimpse.plugin.history.js)*/
+/*(import:glimpse.plugin.timeline.js)*/
 /*(import:google-code-prettify.js)*/

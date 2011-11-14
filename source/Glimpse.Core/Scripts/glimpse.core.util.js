@@ -136,21 +136,26 @@
             }
             return result;
         }, 
-        sortElements : function (container, containerItem) { 
+        sortElements : function (container, containerItem) {
             containerItem.sort(function(a, b) {
-               var compA = $(a).text().toUpperCase();
-               var compB = $(b).text().toUpperCase();
-               return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
-            })
+                var compA = $(a).text().toUpperCase();
+                var compB = $(b).text().toUpperCase();
+                return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
+            });
             $.each(containerItem, function(idx, itm) { container.append(itm); });
         },
         resizer : function (scope, settings) {
             resizer.init(scope, settings);
         }, 
-        getDomain: function(url) {
+        getDomain : function(url) {
             if (url.indexOf('://') > -1)
                 url = url.split('://')[1];
             return url.split('/')[0];
+        },
+        timeConvert : function(value) {
+            if (value < 1000)
+                return value + 'ms';
+            return Math.round(value / 10) / 100 + 's';
         }
     }; 
 } ()

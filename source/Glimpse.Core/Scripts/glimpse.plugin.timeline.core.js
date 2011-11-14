@@ -1,22 +1,4 @@
-﻿
-var glimpse, glimpsePath;
-if (window.jQueryGlimpse) { (function ($) {
- 
-    //#region $.glimpse.util
-
-    $.extend($.glimpse.util, { 
-        timeConvert:function(value) {
-            if (value < 1000)
-                return value + 'ms';
-            return Math.round(value / 10) / 100 + 's';
-        }
-    });
-
-    //#endregion
-    
-//#region glimpseTimeline
-
-var glimpseTimeline = function (scope, settings) { 
+﻿var glimpseTimeline = function (scope, settings) { 
     var elements = {},
         findElements = function () {
             //Main elements
@@ -50,7 +32,7 @@ var glimpseTimeline = function (scope, settings) {
         },
         builder = function () {
             var init = function() {
-                scope.html('<div class="glimpse-timeline"><div class="glimpse-tl-row-summary"><div class="glimpse-tl-content-scroll"><div class="glimpse-tl-event-desc-holder glimpse-tl-col-side"><div class="glimpse-tl-band glimpse-tl-band-title">Categories<span>[Switch view]</span></div><div class="glimpse-tl-event-desc-group"></div></div><div class="glimpse-tl-band-holder glimpse-tl-col-main"><div class="glimpse-tl-band glimpse-tl-band-title"></div><div class="glimpse-tl-band-group"></div></div><div class="glimpse-tl-event-holder glimpse-tl-col-main"><div class="glimpse-tl-band glimpse-tl-band-title"></div><div class="glimpse-tl-event-group"></div></div></div><div class="glimpse-tl-padding-holder glimpse-tl-col-main"><div class="glimpse-tl-padding glimpse-tl-padding-l glimpse-tl-summary-height"></div><div class="glimpse-tl-padding glimpse-tl-padding-r glimpse-tl-summary-height"></div></div><div class="glimpse-tl-divider-holder glimpse-tl-col-main"><div class="glimpse-tl-divider-title-bar"></div><div class="glimpse-tl-divider-line-holder"></div></div><div class="glimpse-tl-resizer-holder glimpse-tl-col-main"><div class="glimpse-tl-resizer glimpse-tl-resizer-l glimpse-tl-summary-height"><div class="glimpse-tl-resizer-bar"></div><div class="glimpse-tl-resizer-handle"></div></div><div class="glimpse-tl-resizer glimpse-tl-resizer-r glimpse-tl-summary-height"><div class="glimpse-tl-resizer-bar"></div><div class="glimpse-tl-resizer-handle"></div></div></div></div><div class="glimpse-tl-row-spacer"></div><div class="glimpse-tl-row-content"><div class="glimpse-tl-content-scroll"><div class="glimpse-tl-band-holder glimpse-tl-col-main"><div class="glimpse-tl-band glimpse-tl-band-title"></div><div class="glimpse-tl-band-group"></div></div><div class="glimpse-tl-divider-holder glimpse-tl-col-main"><div class="glimpse-tl-divider-zero-holder"><div class="glimpse-tl-divider"></div></div><div class="glimpse-tl-divider-line-holder"></div></div><div class="glimpse-tl-event-holder glimpse-tl-col-main"><div class="glimpse-tl-event-holder-inner"><div class="glimpse-tl-band glimpse-tl-band-title"></div><div class="glimpse-tl-event-group"></div></div></div><div class="glimpse-tl-event-desc-holder glimpse-tl-col-side"><div class="glimpse-tl-band glimpse-tl-band-title">Events</div><div class="glimpse-tl-event-desc-group"></div></div></div><div class="glimpse-tl-content-overlay"><div class="glimpse-tl-divider-holder glimpse-tl-col-main"><div class="glimpse-tl-divider-title-bar"></div><div class="glimpse-tl-divider-zero-holder"><div class="glimpse-tl-divider"><div>0</div></div></div><div class="glimpse-tl-divider-line-holder"></div></div></div><div class="glimpse-tl-resizer"><div></div></div><div class="glimpse-tl-content-scroll" style="display:none"><div class="glimpse-tl-table-holder"></div></div></div><div class="glimpse-tl-event-info"></div></div>');
+                scope.html('/*(import:glimpse.plugin.timeline.shell.html)*/');
             };
 
             return {
@@ -89,7 +71,7 @@ var glimpseTimeline = function (scope, settings) {
                             divider.css('left', (leftOffset * (i + 1)) + '%');
                             //Set label of divider
                             var time = i == (dividerCount - 1) ? range.endTime : (timeSlice * (i + 1)) + range.startTime; 
-                            divider.find('div').text($.glimpse.util.timeConvert(parseInt(time)));
+                            divider.find('div').text(glimpse.util.timeConvert(parseInt(time)));
                             //Move onto next
                             divider = divider.next();
                         }
@@ -144,7 +126,7 @@ var glimpseTimeline = function (scope, settings) {
                     } 
 
                     //Insert it into the document
-                    var result = $.glimpseProcessor.build(dataResult, 0, true, metadata, false); 
+                    var result = glimpse.render.build(dataResult, metadata); 
                     elements.contentTableHolder.append(result);
 
                     //Update the output 
@@ -154,7 +136,7 @@ var glimpseTimeline = function (scope, settings) {
                             category = settings.category[event.category];
                              
                         row.find('td:first-child').prepend($('<div class="glimpse-tl-event"></div>').css({ 'backgroundColor' : category.eventColor, marginLeft : (15 * event.nesting) + 'px', 'border' : '1px solid ' + category.eventColorHighlight }));
-                        row.find('td:nth-child(3)').css('position', 'relative').prepend($('<div class="glimpse-tl-event"></div>').css({ 'backgroundColor' : category.eventColor, 'border' : '1px solid ' + category.eventColorHighlight, 'left' : event.startPersent + '%', width : event.widthPersent + '%', position : 'absolute', top : '5px' })); 
+                        row.find('td:nth-child(3)').css('position', 'relative').prepend($('<div class="glimpse-tl-event"></div>').css({ 'backgroundColor' : category.eventColor, 'border' : '1px solid ' + category.eventColorHighlight, 'margin-left' : event.startPersent + '%', width : event.widthPersent + '%' })); 
                     }); 
                 },
                 processCategories = function () {
@@ -367,13 +349,13 @@ var glimpseTimeline = function (scope, settings) {
                     elements.contentRow.find('.glimpse-tl-event-holder').css('marginLeft', (show ? '15' : '0') + 'px');
                 }, 
                 wireEvents = function () {   
-                    elements.zoomLeftHandle.resizer({
+                    glimpse.util.resizer(elements.zoomLeftHandle, {
                         min: function () { return 0; },
                         max: function () { return (elements.zoomRightHandle.position().left - 20); },
                         preDragCallback: function () { elements.zoomLeftHandle.css('left', (elements.zoomLeftHandle.position().left) + 'px'); },
                         endDragCallback: function () { positionLeft(); }
                     });
-                    elements.zoomRightHandle.resizer({
+                    glimpse.util.resizer(elements.zoomRightHandle, {
                         min: function () { return 0; },
                         max: function () { return (elements.zoomHolder.width() - elements.zoomLeftHandle.position().left) - 20; },
                         preDragCallback: function () { elements.zoomRightHandle.css('right', (elements.zoomHolder.width() - elements.zoomRightHandle.position().left) + 'px'); },
@@ -522,7 +504,7 @@ var glimpseTimeline = function (scope, settings) {
                     dividerBuilder.render();
                 },
                 wireEvents = function () { 
-                    elements.contentRow.find('.glimpse-tl-resizer').resizer({
+                    glimpse.util.resizer(elements.contentRow.find('.glimpse-tl-resizer'), {
                         max: function () { return 300; },
                         endDragCallback: function (position) { columnResize(position); }
                     });
@@ -547,15 +529,15 @@ var glimpseTimeline = function (scope, settings) {
                         dividerBuilder.render();
                 },
                 toggle = function() {
-                    var showTimeline = !($.glimpse.settings.timeView);
+                    var showTimeline = !(glimpse.settings.timeView);
 
                     apply(showTimeline);
                  
-                    $.glimpse.settings.timeView = showTimeline;
-                    $.glimpse.persistState();
+                    glimpse.settings.timeView = showTimeline;
+                    glimpse.pubsub.publish('state.persist');
                 },
                 start = function() {
-                    apply($.glimpse.settings.timeView, true);
+                    apply(glimpse.settings.timeView, true);
                 },
                 init = function() { 
                     elements.summaryRow.find('.glimpse-tl-band-title span').click(function () {
@@ -600,75 +582,3 @@ var glimpseTimeline = function (scope, settings) {
         }
     };
 };
-
-//TODO this is to  be removed
-var glimpseTimelineData = {
-    events :[
-        { category :'ASPNET', startTime :'', startPoint :0, duration :0, title :'Request Begin', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'ASPNET', startTime :'', startPoint :2, duration :11, title :'Http Handlers', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'ASPNET', startTime :'', startPoint :15, duration :0, title :'Process Pipeline', subText :'', pluginContextId :'', plugin :'', details :{ 'Hello World' :'This is data', 'Jester' :'Hello there' } },
-        { category :'Database', startTime :'', startPoint :20, duration :0, title :'Connection', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'MVC', startTime :'', startPoint :25, duration :15, title :'Action', subText :'Person/Add', pluginContextId :'', plugin :'', details :{} },
-        { category :'Database', startTime :'', startPoint :55, duration :0, title :'Command', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'MVC', startTime :'', startPoint :60, duration :20, title :'Filter', subText :'Authorization', pluginContextId :'', plugin :'', details :{} },
-        { category :'MVC', startTime :'', startPoint :75, duration :55, title :'Filter', subText :'Validation', pluginContextId :'', plugin :'', details :{} },
-        { category :'Database', startTime :'', startPoint :80, duration :45, title :'Transaction', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'Trace', startTime :'', startPoint :100, duration :6, title :'Logon', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'Routes', startTime :'', startPoint :134, duration :4, title :'Resolved Routes', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'Trace', startTime :'', startPoint :138, duration :0, title :'Registered', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'Trace', startTime :'', startPoint :142, duration :0, title :'Socket Open', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'Routes', startTime :'', startPoint :143, duration :30, title :'Partial View', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'Database', startTime :'', startPoint :150, duration :0, title :'Command', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'Routes', startTime :'', startPoint :152, duration :8, title :'Partial View', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'MVC', startTime :'', startPoint :160, duration :36, title :'View', subText :'', pluginContextId :'', plugin :'', details :{} },
-        { category :'Trace', startTime :'', startPoint :195, duration :29, title :'Process Workflow', subText :'', pluginContextId :'', plugin :'', details :{} }
-    ],
-    category :{
-        'ASPNET' : { eventColor : '#FD4545', eventColorHighlight : '#DD3131' },
-        'Database' : { eventColor : '#AF78DD', eventColorHighlight : '#823BBE' }, //:{ event:'purple' },
-        'MVC' : { eventColor : '#72A3E4', eventColorHighlight : '#5087CF' }, //{ event:'blue' },
-        'Trace' : { eventColor : '#FDBF45', eventColorHighlight : '#DDA431' }, //{ event:'orange' },
-        'Routes' : { eventColor : '#10E309', eventColorHighlight : '#0EC41D' } //{ event:'green' }
-    },
-    duration :'230'
-};
-
-var glimpseTimelinePlugin = function () {
-    var timeline,
-        defaults = {
-            key : 'Timeline',
-            hasRun : false
-        }, 
-        timelineData,
-        init = function () {
-            $.glimpse.addProtocolListener(function(data) { adjustProtocol(data); });
-            $.glimpse.addLayoutListener(function(tabStrip, panelHolder) { defaults.hasRun = false; });
-            
-            $('.glimpse').live('glimpse.tabchanged', function(ev, type) { if (defaults.key == type && !defaults.hasRun) { adjustLayout(); } });
-            $('.glimpse').live('glimpse.resize', function(ev, height) { if (timeline || defaults.hasRun) { timeline.support.containerResize(height); } defaults.height = height; });
-        },
-        adjustProtocol = function (data) {
-            //Pull out data and store
-            timelineData = data.timeline || glimpseTimelineData;
-            //Clear out data
-            data[defaults.key] = 'Generating timeline, please wait...';
-        },
-        adjustLayout = function () {    
-            timeline = glimpseTimeline($('.glimpse-panelitem-' + defaults.key), timelineData);
-            timeline.init();
-            if (defaults.height) {
-                timeline.support.containerResize(defaults.height);
-            }
-            defaults.hasRun = true;
-        };
-
-    return { 
-        init : init 
-    };
-} ();
-    
-glimpseTimelinePlugin.init();
-
-//#endregion
- 
-})(jQueryGlimpse); }   
