@@ -2542,13 +2542,14 @@ var glimpseTimelinePlugin = (function ($, glimpse) {
     
     var //Support  
         currentData = undefined,
-        currentTimeline = undefined,
-        currentHeight = glimpse.settings.height,
+        currentTimeline = undefined, 
         wireListener = function () {    
             glimpse.pubsub.subscribe('action.data.applied', contextChanged);
             glimpse.pubsub.subscribe('action.plugin.created', function (topic, payload) { if (payload == 'Timeline') { created(); } });
-            glimpse.pubsub.subscribe('action.resize', function (topic, payload) { resize(payload); });
+            glimpse.pubsub.subscribe('action.plugin.active', function (topic, payload) { if (payload == 'Timeline') { resize(); } }); 
+            glimpse.pubsub.subscribe('action.resize', resize);
             glimpse.pubsub.subscribe('state.build.template.modify', function(topic, payload) { modify(payload); }); 
+            
         }, 
           
         created = function () { 
@@ -2556,16 +2557,13 @@ var glimpseTimelinePlugin = (function ($, glimpse) {
                 payload = glimpse.data.current().data;
             
             currentTimeline = glimpseTimeline(panel, currentData);
-            currentTimeline.init();
-            currentTimeline.support.containerResize(currentHeight - 54);
+            currentTimeline.init(); 
 
             payload.Timeline.data = currentData;
         },
-        resize = function (payload) {
-            currentHeight = payload;
-            
+        resize = function () { 
             if (currentTimeline)
-                currentTimeline.support.containerResize(currentHeight - 54);
+                setTimeout(function() { currentTimeline.support.containerResize(glimpse.settings.height - 54); }, 1);
         }, 
         contextChanged = function () {
             var payload = glimpse.data.current().data;
