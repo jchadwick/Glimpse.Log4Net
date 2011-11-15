@@ -5,7 +5,7 @@
     var //Support  
         currentData = undefined,
         currentTimeline = undefined,
-        currentHeight = 50,
+        currentHeight = glimpse.settings.height,
         wireListener = function () {    
             glimpse.pubsub.subscribe('action.data.applied', contextChanged);
             glimpse.pubsub.subscribe('action.plugin.created', function (topic, payload) { if (payload == 'Timeline') { created(); } });
@@ -14,24 +14,29 @@
         }, 
           
         created = function () { 
-            var panel = glimpse.elements.findPanel('Timeline');
+            var panel = glimpse.elements.findPanel('Timeline'),
+                payload = glimpse.data.current().data;
             
             currentTimeline = glimpseTimeline(panel, currentData);
             currentTimeline.init();
-            currentTimeline.support.containerResize(currentHeight);
+            currentTimeline.support.containerResize(currentHeight - 54);
+
+            payload.Timeline.data = currentData;
         },
         resize = function (payload) {
             currentHeight = payload;
             
             if (currentTimeline)
-                currentTimeline.support.containerResize(currentHeight);
+                currentTimeline.support.containerResize(currentHeight - 54);
         }, 
         contextChanged = function () {
             var payload = glimpse.data.current().data;
 
-            currentData = payload.Timeline.data;
-            if (currentData)
-                payload.Timeline.data = 'Generating timeline, please wait...';
+            if (payload.Timeline) {
+                currentData = payload.Timeline.data;
+                if (currentData)
+                    payload.Timeline.data = 'Generating timeline, please wait...';
+            }
         },
         modify = function (template) {
             template.css += '/*(import:glimpse.plugin.timeline.shell.css)*/';

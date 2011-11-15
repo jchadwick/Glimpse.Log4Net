@@ -497,7 +497,7 @@
                 },
                 containerResize = function (height) { 
                     //Work out what heihgt we can work with
-                    var contentHeight = height - (elements.summaryRow.height() + scope.find('.glimpse-tl-row-spacer').height() + 2);  
+                    var contentHeight = height - (elements.summaryRow.height() + scope.find('.glimpse-tl-row-spacer').height());  
                     elements.contentRow.height(contentHeight + 'px');
                     
                     //Render Divers

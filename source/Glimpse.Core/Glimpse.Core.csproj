@@ -111,6 +111,7 @@
     <Content Include="Scripts\glimpse.plugin.history.js" />
     <Content Include="Scripts\glimpse.plugin.timeline.core.js" />
     <Content Include="Scripts\glimpse.plugin.timeline.js" />
+    <Content Include="Scripts\glimpse.plugin.timeline.shell.css" />
     <Content Include="Scripts\glimpse.plugin.timeline.shell.html" />
     <Content Include="Scripts\glimpse.remote.plugin.js" />
     <Content Include="Scripts\glimpse.plugin.ajax.js" />
@@ -194,7 +195,6 @@
     <Content Include="Scripts\glimpse.view.metadata.html" />
     <Content Include="Scripts\jquery-1.6.3.min.js" />
     <Content Include="Scripts\sprite.png" />
-    <Content Include="Scripts\old-glimpseClient.js" />
     <Content Include="Scripts\test-a.html" />
     <Content Include="Scripts\test-popup.html" />
     <Content Include="Scripts\Test\test.glimpse.ajax.js" />
