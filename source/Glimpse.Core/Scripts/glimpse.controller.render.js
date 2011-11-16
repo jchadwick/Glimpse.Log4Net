@@ -40,8 +40,12 @@
          
         selectedPanel = function (key) {
             var panel = elements.panelHolder.find('.glimpse-panel[data-glimpseKey="' + key + '"]');  
-            if (panel.length == 0) {
-                panel = renderPanel(key, data.current().data[key], data.currentMetadata().plugins[key]);   
+
+            if (panel.length == 0 || panel.hasClass('glimpse-lazy-item')) { 
+                if (panel.length > 0) 
+                    panel.remove(); 
+                panel = renderPanel(key, data.current().data[key], data.currentMetadata().plugins[key]); 
+
                 pubsub.publish('action.plugin.created', key); 
             }
             
@@ -59,8 +63,10 @@
 
             if (!pluginData.isLazy && pluginData.data)
                 renderEngine.insert(panel, pluginData.data, metadata);
-            else
+            else {
+                panel.addClass('glimpse-lazy-item');
                 pubsub.publishAsync('action.plugin.lazyload', key);
+            }
 
             var end = new Date().getTime(); 
             console.log('Total render time for "' + key + '": ' + (end - start));

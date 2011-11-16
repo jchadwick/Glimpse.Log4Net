@@ -9,6 +9,10 @@
             "SQL":{ name : 'SQL', data : [["Commands per Connection","Open Time"],[[["Transaction Start","Ordinal","Command","Parameters","Records","Command Time","From First","Transaction End","Errors"],[null,1,"SELECT TOP (1) \r\n[Extent1].[Id] AS [Id], \r\n[Extent1].[ModelHash] AS [ModelHash]\r\nFROM [EdmMetadata] AS [Extent1]\r\nORDER BY [Extent1].[Id] DESC",null,1,30,"0",null,null,""],[null,2,"SELECT TOP (5) \r\n[Project1].[AlbumId] AS [AlbumId], \r\n[Project1].[GenreId] AS [GenreId], \r\n[Project1].[ArtistId] AS [ArtistId], \r\n[Project1].[Title] AS [Title], \r\n[Project1].[Price] AS [Price], \r\n[Project1].[AlbumArtUrl] AS [AlbumArtUrl]\r\nFROM ( SELECT \r\n\t[Extent1].[AlbumId] AS [AlbumId], \r\n\t[Extent1].[GenreId] AS [GenreId], \r\n\t[Extent1].[ArtistId] AS [ArtistId], \r\n\t[Extent1].[Title] AS [Title], \r\n\t[Extent1].[Price] AS [Price], \r\n\t[Extent1].[AlbumArtUrl] AS [AlbumArtUrl], \r\n\t[SSQTAB1].[A1] AS [C1]\r\n\tFROM [Albums] AS [Extent1]\r\n\t OUTER APPLY\r\n\t(SELECT \r\n\t\tCOUNT(1) AS [A1]\r\n\t\tFROM [OrderDetails] AS [Extent2]\r\n\t\tWHERE [Extent1].[AlbumId] = [Extent2].[AlbumId]) AS [SSQTAB1]\r\n)  AS [Project1]\r\nORDER BY [Project1].[C1] DESC",null,5,3,"0",null,null,""]],1536.0],[[["Transaction Start","Ordinal","Command","Parameters","Records","Command Time","From First","Transaction End","Errors"],[null,1,"SELECT \r\n[GroupBy1].[A1] AS [C1]\r\nFROM ( SELECT \r\n\tSUM([Extent1].[Count]) AS [A1]\r\n\tFROM [Carts] AS [Extent1]\r\n\tWHERE [Extent1].[CartId] = '2dc2f24f-5816-4e8e-bc70-2438ce628be8' /* @p__linq__0 */\r\n)  AS [GroupBy1]",[["Name","Value","Type","Size"],["@p__linq__0","2dc2f24f-5816-4e8e-bc70-2438ce628be8","String",0]],1,10,"0",null,null,""]],43.0],[[["Transaction Start","Ordinal","Command","Parameters","Records","Command Time","From First","Transaction End","Errors"],[null,1,"SELECT \r\n[Extent1].[GenreId] AS [GenreId], \r\n[Extent1].[Name] AS [Name], \r\n[Extent1].[Description] AS [Description]\r\nFROM [Genres] AS [Extent1]",null,10,394,"0",null,null,""]],414.0]] },
             "Routes":{ name : 'Routes', data : [["Match","Area","Url","Data","Constraints","DataTokens"],["False","Test","Test/{controller}/{action}/{id}",null,null,{"Namespaces":["MvcMusicStore.Areas.Test.*"],"area":"Test","UseNamespaceFallback":false},""],["False","Test","Test/{controller}/NeverUsed/{action}/{id}",null,null,{"Namespaces":["MvcMusicStore.Areas.Test.*"],"area":"Test","UseNamespaceFallback":false},""],["False","_Root_","{resource}.axd/{*pathInfo}",null,null,null,""],["False","_Root_","{*favicon}",null,{"favicon":"(.*/)?favicon.ico(/.*)?"},null,""],["True","_Root_","{controller}/{action}/{id}",[["Placeholder","Default Value","Actual Value"],["controller","Home","Home"],["action","Index","Index"],["id","_Optional_","_Optional_"]],null,null,"selected"],["False","_Root_","Never/Used/Route",null,null,null,""]] }
         },
+        lazyData = {
+            'Lazy Name' : 'Snoopy',
+            'Lazy Description' : 'Because I said so'
+        },
 
         requests1 = [
             { type : 'Session', method : 'Get', duration : 213, browser : 'Chrome 16.0', clientName : '', requestTime : '2011/11/09 12:00:12', requestId : 'ajax0', parentId : '1234', isAjax : true, url : '/Product'},
@@ -62,16 +66,22 @@
             setTimeout(function () { 
                 var response; 
                 if (param.data && param.data.ClientRequestID) { 
-                    param.complete();  
+                    if (param.complete)
+                        param.complete();  
+
                     for (var i = 0; i < requests1.length ; i++) {
                         if (requests1[i].requestId == param.data.ClientRequestID)
                             response = requests1[i];
                     }
+
                     if (response) {
                         response.data = {};
                         response.data[response.type] = data[response.type];
                         response.metadata = metadata; 
                     } 
+                    
+                    if (param.data.PluginKey) 
+                        response = param.data.PluginKey != "Lazy" ? response.data[param.data.PluginKey] : lazyData;
                 } 
                 else { 
                     param.complete(null, (random(11) != 10 ? 'Success' : 'Fail')); 

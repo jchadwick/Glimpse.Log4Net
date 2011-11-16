@@ -464,8 +464,13 @@ var glimpse = (function ($, scope) {
                  
                 selectedPanel = function (key) {
                     var panel = elements.panelHolder.find('.glimpse-panel[data-glimpseKey="' + key + '"]');  
-                    if (panel.length == 0) {
-                        panel = renderPanel(key, data.current().data[key], data.currentMetadata().plugins[key]);   
+        
+                    if (panel.length == 0 || panel.hasClass('glimpse-lazy-item')) { 
+                        if (panel.length > 0) 
+                            panel.remove();
+        
+                        panel = renderPanel(key, data.current().data[key], data.currentMetadata().plugins[key]); 
+        
                         pubsub.publish('action.plugin.created', key); 
                     }
                     
@@ -483,8 +488,10 @@ var glimpse = (function ($, scope) {
         
                     if (!pluginData.isLazy && pluginData.data)
                         renderEngine.insert(panel, pluginData.data, metadata);
-                    else
+                    else {
+                        panel.addClass('glimpse-lazy-item');
                         pubsub.publishAsync('action.plugin.lazyload', key);
+                    }
         
                     var end = new Date().getTime(); 
                     console.log('Total render time for "' + key + '": ' + (end - start));
@@ -843,15 +850,17 @@ var glimpse = (function ($, scope) {
                 wireListeners = function() {
                     pubsub.subscribe('action.plugin.lazyload', function(subject, payload) { fetch(payload); }); 
                 },   
-                retrievePlugin = function(key, callback) {  
+                retrievePlugin = function(key) {   
+                    var currentData = data.current();
                     $.ajax({
                         url : glimpsePath + 'History',
                         type : 'GET',
-                        data : { 'ClientRequestID' : inner.requestId, 'PluginKey' : key },
+                        data : { 'ClientRequestID' : currentData.requestId, 'PluginKey' : key },
                         contentType : 'application/json',
-                        success : function (result, textStatus, jqXHR) { 
-                            var currentData = data.current();
-                            currentData.data[key].data = data;  
+                        success : function (result) {
+                            var itemData = currentData.data[key];
+                            itemData.data = result;  
+                            itemData.isLazy = false;
         
                             pubsub.publishAsync('action.tab.select', key);
                         }
