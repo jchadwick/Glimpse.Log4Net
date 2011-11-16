@@ -467,8 +467,7 @@ var glimpse = (function ($, scope) {
         
                     if (panel.length == 0 || panel.hasClass('glimpse-lazy-item')) { 
                         if (panel.length > 0) 
-                            panel.remove();
-        
+                            panel.remove(); 
                         panel = renderPanel(key, data.current().data[key], data.currentMetadata().plugins[key]); 
         
                         pubsub.publish('action.plugin.created', key); 
