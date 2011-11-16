@@ -65,7 +65,7 @@ task pack -depends merge {
     copy $source_dir\Glimpse.Mvc3\nuspec\lib\net40\Glimpse.Mvc3.dll $build_dir\local\zip
     copy $source_dir\Glimpse.Ef\nuspec\lib\net40\Glimpse.Ef.dll $build_dir\local\zip
     #copy $source_dir\Glimpse.Elmah\nuspec\lib\net40\Glimpse.Elmah.dll $build_dir\local\zip
-    copy $source_dir\Glimpse.Log4Net\nuspec\lib\net40\Log4Net.Log4Net.dll $build_dir\local\zip
+    copy $source_dir\Glimpse.Log4Net\nuspec\lib\net40\Glimpse.Log4Net.dll $build_dir\local\zip
     
     copy $source_dir\Glimpse.Core\nuspec\content\App_Readme\glimpse.readme.txt $build_dir\local\zip
     copy $source_dir\Glimpse.Mvc3\nuspec\content\App_Readme\glimpse.mvc3.readme.txt $build_dir\local\zip

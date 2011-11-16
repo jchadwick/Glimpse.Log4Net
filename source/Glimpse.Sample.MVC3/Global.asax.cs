@@ -1,8 +1,6 @@
 ﻿using System.Web.Mvc;
 using System.Web.Routing;
 
-[assembly: log4net.Config.XmlConfigurator(ConfigFile = "log4net.config", Watch = true)]
-
 namespace MvcMusicStore
 {
     // Note: For instructions on enabling IIS6 or IIS7 classic mode, 
@@ -31,7 +29,7 @@ namespace MvcMusicStore
 
         protected void Application_Start()
         {
-            log4net.Config.XmlConfigurator.Configure();
+            log4net.Config.BasicConfigurator.Configure();
 
             AreaRegistration.RegisterAllAreas();
 

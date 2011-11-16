@@ -47,7 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Appender\GlimpseAppender.cs" />
-    <Compile Include="Plugin\Log4Net.cs" />
+    <Compile Include="Plugin\RequestLogEntries.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -60,7 +60,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="NuSpec\content\log4net.config.transform" />
     <None Include="NuSpec\Glimpse.Log4Net.nuspec">
       <SubType>Designer</SubType>
     </None>
