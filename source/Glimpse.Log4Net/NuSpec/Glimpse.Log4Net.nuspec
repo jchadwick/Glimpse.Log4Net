@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Glimpse.Log4Net</id>
-    <version>0.86.1</version>
+    <version>0.86.2</version>
     <title>Glimpse for log4net</title>
     <authors>Jess Chadwick</authors>
     <owners>Jess Chadwick</owners>

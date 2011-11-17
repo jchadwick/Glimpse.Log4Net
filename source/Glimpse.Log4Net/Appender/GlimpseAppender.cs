@@ -13,6 +13,16 @@ namespace Glimpse.Log4Net.Appender
     {
         private const string ContextKey = Plugin.RequestLogEntries.ContextKey;
 
+        /// <summary>
+        /// The log level threshold for the dynamically-generated
+        /// </summary>
+        /// <remarks>
+        /// This field is here if you want to change it, but if you 
+        /// want to control the details of the appender you're better
+        /// off just configuring one in your log4net config...
+        /// </remarks>
+        public static Level DefaultThreshold = Level.Warn;
+
         public static void Initialize()
         {
             // Users are free to add (and configure) a GlimpseAppender 
@@ -27,7 +37,7 @@ namespace Glimpse.Log4Net.Appender
                 return;
 
             var repository = (Hierarchy)LogManager.GetRepository();
-            repository.Root.AddAppender(new GlimpseAppender { Threshold = Level.Info });
+            repository.Root.AddAppender(new GlimpseAppender { Threshold = DefaultThreshold });
         }
 
         protected override void Append(LoggingEvent loggingEvent)

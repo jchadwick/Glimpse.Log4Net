@@ -42,22 +42,40 @@ namespace Glimpse.Log4Net.Plugin
             if (logEntries == null)
                 return null;
 
+            // Evaluate any expression trees
+            logEntries = logEntries.ToArray();
+
+            var data = new List<object[]>();
+
             // Only include the full log entry when there is a reasonable 
             // number of log messages
             var includeDetails = logEntries.Count() < MaxDetailedLogs;
 
-            var glimpseData = 
-                logEntries.Select(log => new object[] {
+            if (includeDetails)
+            {
+                data.Add(new[] { "Level", "Timestamp", "Message", "Log Entry" });
+                data.AddRange(logEntries.Select(log => new object[] {
                                     log.Level.DisplayName, 
                                     log.TimeStamp, 
                                     log.RenderedMessage,
-                                    includeDetails ? log : null,
+                                    log,
                                     GetStyle(log.Level),
-                                });
+                                }));
+            }
+            else
+            {
+                data.Add(new[] { "Level", "Timestamp", "Message" });
+                data.AddRange(logEntries.Select(log => new object[] {
+                                    log.Level.DisplayName, 
+                                    log.TimeStamp, 
+                                    log.RenderedMessage,
+                                    GetStyle(log.Level),
+                                }));
+            }
 
-            var data = new List<object[]> { new[] { "Level", "Timestamp", "Message", "Log Entry" } };
 
-            data.AddRange(glimpseData);
+            // Clean up after ourselves
+            context.Items[ContextKey] = null;
 
             return data;
         }
