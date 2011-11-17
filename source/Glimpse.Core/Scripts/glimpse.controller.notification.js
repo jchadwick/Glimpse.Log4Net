@@ -6,7 +6,7 @@
 
         //Main 
         check = function () {
-            var metadata = data.currentMetadata();
+            var metadata = data.currentMetadata(),
                 newestVersion = util.cookie('glimpseLatestVersion'),
                 currentVersion = '';
 

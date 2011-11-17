@@ -13,7 +13,7 @@
         //Main
         build = function () {
             pubsub.publish('state.build.template');  
-            pubsub.publish('state.build.template.modify');
+            pubsub.publish('state.build.template.modify', template);
                     
             $(getCss()).appendTo('head'); 
             $(getHtml()).appendTo('body');

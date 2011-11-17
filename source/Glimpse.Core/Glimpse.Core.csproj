@@ -108,9 +108,13 @@
     <Compile Include="Plumbing\GlimpseResponseFilter.cs" />
     <Compile Include="Plumbing\GlimpseSerializer.cs" />
     <Compile Include="Plumbing\InProcStackMetadataStore.cs" />
-    <Content Include="Scripts\glimpse.history.plugin.js" />
+    <Content Include="Scripts\glimpse.plugin.history.js" />
+    <Content Include="Scripts\glimpse.plugin.timeline.core.js" />
+    <Content Include="Scripts\glimpse.plugin.timeline.js" />
+    <Content Include="Scripts\glimpse.plugin.timeline.shell.css" />
+    <Content Include="Scripts\glimpse.plugin.timeline.shell.html" />
     <Content Include="Scripts\glimpse.remote.plugin.js" />
-    <Content Include="Scripts\glimpse.ajax.plugin.js" />
+    <Content Include="Scripts\glimpse.plugin.ajax.js" />
     <Content Include="Scripts\glimpse.controller.lazyloader.js" />
     <Content Include="Scripts\glimpse.controller.metadata.js" />
     <Content Include="Scripts\glimpse.controller.notification.js" />
@@ -172,6 +176,8 @@
     <Compile Include="Sanitizer\CSharpSanitizer.cs" />
     <Compile Include="Warning\SerializationWarning.cs" />
     <Compile Include="Warning\Warning.cs" />
+    <Content Include="Scripts\glimpse.view.shell.code.css" />
+    <Content Include="Scripts\google-code-prettify.js" />
     <Content Include="Scripts\Test\test.glimpse.ajax.history.js" />
     <Content Include="Scripts\Test\test.glimpse.ajax.ajax.js" />
     <Content Include="Scripts\Test\glimpseTest.js" />
@@ -189,7 +195,6 @@
     <Content Include="Scripts\glimpse.view.metadata.html" />
     <Content Include="Scripts\jquery-1.6.3.min.js" />
     <Content Include="Scripts\sprite.png" />
-    <Content Include="Scripts\old-glimpseClient.js" />
     <Content Include="Scripts\test-a.html" />
     <Content Include="Scripts\test-popup.html" />
     <Content Include="Scripts\Test\test.glimpse.ajax.js" />
@@ -212,7 +217,7 @@
     <None Include="NuSpec\tools\install.ps1" />
     <Content Include="Scripts\glimpse.core.state.js" />
     <Content Include="Scripts\glimpse.render.engine.keyValue.js" />
-    <Content Include="Scripts\glimpse.ajax.spy.js" />
+    <Content Include="Scripts\glimpse.plugin.ajax.spy.js" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

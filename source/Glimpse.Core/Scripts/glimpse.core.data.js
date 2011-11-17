@@ -1,6 +1,7 @@
 ﻿data = (function () {
     var //Support
         inner = {}, 
+        base = {},
     
         //Main 
         update = function (data) {
@@ -8,45 +9,54 @@
 
             pubsub.publish('action.data.update');
         },
-        retrieve = function(requestId, callback) { 
-            if (callback.start)
+        reset = function () {
+            update(base);
+        },
+        retrieve = function (requestId, callback) { 
+            if (callback && callback.start)
                 callback.start(requestId);
 
-            $.ajax({
-                url : glimpsePath + 'History',
-                type : 'GET',
-                data : { 'ClientRequestID': requestId },
-                contentType : 'application/json',
-                success : function (data, textStatus, jqXHR) {   
-                    if (callback.success) 
-                        callback.success(requestId, data, inner, textStatus, jqXHR);  
-                    update(data);  
-                }, 
-                complete : function (jqXHR, textStatus) {
-                    if (callback.complete) 
-                        callback.complete(requestId, jqXHR, textStatus); 
-                }
-            });
+            if (requestId != base.requestId) {
+                $.ajax({
+                    url : glimpsePath + 'History',
+                    type : 'GET',
+                    data : { 'ClientRequestID': requestId },
+                    contentType : 'application/json',
+                    success : function (result, textStatus, jqXHR) {   
+                        if (callback && callback.success) { callback.success(requestId, result, inner, textStatus, jqXHR); }
+                        update(result);  
+                    }, 
+                    complete : function (jqXHR, textStatus) {
+                        if (callback && callback.complete) { callback.complete(requestId, jqXHR, textStatus); }
+                    }
+                });
+            }
+            else { 
+                if (callback && callback.success) { callback.success(requestId, base, inner, 'Success'); }
+                update(base);  
+                if (callback && callback.complete) { callback.complete(requestId, undefined, 'Success'); } 
+            }
         },
 
         current = function () {
             return inner;
         },
         currentMetadata = function () {
-            return inner.data._metadata;
+            return inner.metadata;
         },
 
         init = function () {
             inner = glimpseData; 
+            base = glimpseData; 
         };
         
     init(); 
     
-    return {
-//        stack : stack,
+    return { 
         current : current,
         currentMetadata : currentMetadata,
         update : update,
-        retrieve : retrieve
+        retrieve : retrieve,
+        reset : reset
     };
 }())

@@ -7,10 +7,10 @@ var glimpse = (function ($, scope) {
         config = {
             path : '',
             popupUrl : 'test-popup.html'
-        }
+        },
         settings = {
             height : 250,
-            activeTab: 'Routes',
+            activeTab: 'Routes'
         },
 /*(import:glimpse.core.util.js|2)*/,
 /*(import:glimpse.core.objects.js|2)*/,
@@ -43,7 +43,9 @@ var glimpse = (function ($, scope) {
         elements : elements,
         render : renderEngine,
         objects : objects,
-        data : data 
+        data : data,
+        util : util,
+        settings : settings
     };
 }($Glimpse, $Glimpse(document)));
 
@@ -56,5 +58,7 @@ $Glimpse(document).ready(function() {
     console.log('Total execution time: ' + (end - start));
 });
 
-/*(import:glimpse.ajax.plugin.js)*/
-/*(import:glimpse.history.plugin.js)*/
+/*(import:glimpse.plugin.ajax.js)*/
+/*(import:glimpse.plugin.history.js)*/
+/*(import:glimpse.plugin.timeline.js)*/
+/*(import:google-code-prettify.js)*/

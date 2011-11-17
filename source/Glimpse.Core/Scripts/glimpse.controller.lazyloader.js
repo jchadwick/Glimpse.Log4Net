@@ -3,15 +3,17 @@
         wireListeners = function() {
             pubsub.subscribe('action.plugin.lazyload', function(subject, payload) { fetch(payload); }); 
         },   
-        retrievePlugin = function(key, callback) {  
+        retrievePlugin = function(key) {   
+            var currentData = data.current();
             $.ajax({
                 url : glimpsePath + 'History',
                 type : 'GET',
-                data : { 'ClientRequestID' : inner.requestId, 'PluginKey' : key },
+                data : { 'ClientRequestID' : currentData.requestId, 'PluginKey' : key },
                 contentType : 'application/json',
-                success : function (result, textStatus, jqXHR) { 
-                    var currentData = data.current();
-                    currentData.data[key].data = data;  
+                success : function (result) {
+                    var itemData = currentData.data[key];
+                    itemData.data = result;  
+                    itemData.isLazy = false;
 
                     pubsub.publishAsync('action.tab.select', key);
                 }

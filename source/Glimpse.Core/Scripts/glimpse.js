@@ -10,10 +10,10 @@ var glimpse = (function ($, scope) {
         config = {
             path : '',
             popupUrl : 'test-popup.html'
-        }
+        },
         settings = {
             height : 250,
-            activeTab: 'Routes',
+            activeTab: 'Routes'
         },
         util = function () {
             var //Support
@@ -153,32 +153,37 @@ var glimpse = (function ($, scope) {
                     }
                     return result;
                 }, 
-                sortElements : function (container, containerItem) { 
+                sortElements : function (container, containerItem) {
                     containerItem.sort(function(a, b) {
-                       var compA = $(a).text().toUpperCase();
-                       var compB = $(b).text().toUpperCase();
-                       return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
-                    })
+                        var compA = $(a).text().toUpperCase();
+                        var compB = $(b).text().toUpperCase();
+                        return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
+                    });
                     $.each(containerItem, function(idx, itm) { container.append(itm); });
                 },
                 resizer : function (scope, settings) {
                     resizer.init(scope, settings);
                 }, 
-                getDomain: function(url) {
+                getDomain : function(url) {
                     if (url.indexOf('://') > -1)
                         url = url.split('://')[1];
                     return url.split('/')[0];
+                },
+                timeConvert : function(value) {
+                    if (value < 1000)
+                        return value + 'ms';
+                    return Math.round(value / 10) / 100 + 's';
                 }
             }; 
         } (),
         objects = function () { 
-            var //Constructors
-                ConnectionNotice = function (scope) {
+            var ConnectionNotice = function (scope) {
                     var that = (this === window) ? {} : this;
                     that.scope = scope;
                     that.text = scope.find('span');
                     return that;
                 };
+            
             ConnectionNotice.prototype = {
                 connected : false, 
                 prePoll : function () {
@@ -205,7 +210,7 @@ var glimpse = (function ($, scope) {
             
             return {
                 ConnectionNotice : ConnectionNotice
-            }
+            };
         } (),
         pubsub = (function () {
             var //Support
@@ -309,6 +314,7 @@ var glimpse = (function ($, scope) {
         data = (function () {
             var //Support
                 inner = {}, 
+                base = {},
             
                 //Main 
                 update = function (data) {
@@ -316,46 +322,55 @@ var glimpse = (function ($, scope) {
         
                     pubsub.publish('action.data.update');
                 },
-                retrieve = function(requestId, callback) { 
-                    if (callback.start)
+                reset = function () {
+                    update(base);
+                },
+                retrieve = function (requestId, callback) { 
+                    if (callback && callback.start)
                         callback.start(requestId);
         
-                    $.ajax({
-                        url : glimpsePath + 'History',
-                        type : 'GET',
-                        data : { 'ClientRequestID': requestId },
-                        contentType : 'application/json',
-                        success : function (data, textStatus, jqXHR) {   
-                            if (callback.success) 
-                                callback.success(requestId, data, inner, textStatus, jqXHR);  
-                            update(data);  
-                        }, 
-                        complete : function (jqXHR, textStatus) {
-                            if (callback.complete) 
-                                callback.complete(requestId, jqXHR, textStatus); 
-                        }
-                    });
+                    if (requestId != base.requestId) {
+                        $.ajax({
+                            url : glimpsePath + 'History',
+                            type : 'GET',
+                            data : { 'ClientRequestID': requestId },
+                            contentType : 'application/json',
+                            success : function (result, textStatus, jqXHR) {   
+                                if (callback && callback.success) { callback.success(requestId, result, inner, textStatus, jqXHR); }
+                                update(result);  
+                            }, 
+                            complete : function (jqXHR, textStatus) {
+                                if (callback && callback.complete) { callback.complete(requestId, jqXHR, textStatus); }
+                            }
+                        });
+                    }
+                    else { 
+                        if (callback && callback.success) { callback.success(requestId, base, inner, 'Success'); }
+                        update(base);  
+                        if (callback && callback.complete) { callback.complete(requestId, undefined, 'Success'); } 
+                    }
                 },
         
                 current = function () {
                     return inner;
                 },
                 currentMetadata = function () {
-                    return inner.data._metadata;
+                    return inner.metadata;
                 },
         
                 init = function () {
                     inner = glimpseData; 
+                    base = glimpseData; 
                 };
                 
             init(); 
             
-            return {
-        //        stack : stack,
+            return { 
                 current : current,
                 currentMetadata : currentMetadata,
                 update : update,
-                retrieve : retrieve
+                retrieve : retrieve,
+                reset : reset
             };
         }()),
         process = function () {
@@ -392,8 +407,8 @@ var glimpse = (function ($, scope) {
                     pubsub.subscribe('state.build.template', processData);  
                 },
                 processData = function () {  
-                    var version = data.currentMetadata().request.runningVersion
-                    template.css = '.glimpse, .glimpse *, .glimpse a, .glimpse td, .glimpse th, .glimpse table {font-family: Helvetica, Arial, sans-serif;background-color: transparent;font-size: 11px;line-height: 14px;border: 0px;color: #232323;text-align: left;}.glimpse table {min-width: 0;}.glimpse a, .glimpse a:hover, .glimpse a:visited {color: #2200C1;text-decoration: underline;font-weight: normal;}.glimpse a:active {color: #c11;text-decoration: underline;font-weight: normal;}.glimpse th {font-weight: bold;}.glimpse-open {z-index: 100010;position: fixed;right: 0;bottom: 0;height: 27px;width: 28px;background: #cfcfcf;background: -moz-linear-gradient(top, #cfcfcf 0%, #dddddd 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#cfcfcf), color-stop(100%,#dddddd));background: -webkit-linear-gradient(top, #cfcfcf 0%,#dddddd 100%);background: -o-linear-gradient(top, #cfcfcf 0%,#dddddd 100%);background: -ms-linear-gradient(top, #cfcfcf 0%,#dddddd 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#cfcfcf\', endColorstr=\'#dddddd\',GradientType=0 );background: linear-gradient(top, #cfcfcf 0%,#dddddd 100%);-webkit-box-shadow: inset 0px 1px 0px 0px #E2E2E2;-moz-box-shadow: inset 0px 1px 0px 0px #E2E2E2;box-shadow: inset 0px 1px 0px 0px #E2E2E2;border-top: 1px solid #7A7A7A;border-left: 1px solid #7A7A7A;}.glimpse-icon {background: url() 0px -16px;height: 20px;width: 20px;margin: 3px 4px 0;cursor: pointer;}.glimpse-holder {display: none;z-index: 100010 !important;height: 0;position: fixed;bottom: 0;left: 0;width: 100%;background-color: #fff;}.glimpse-bar {background: #cfcfcf;background: -moz-linear-gradient(top, #cfcfcf 0%, #dddddd 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#cfcfcf), color-stop(100%,#dddddd));background: -webkit-linear-gradient(top, #cfcfcf 0%,#dddddd 100%);background: -o-linear-gradient(top, #cfcfcf 0%,#dddddd 100%);background: -ms-linear-gradient(top, #cfcfcf 0%,#dddddd 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#cfcfcf\', endColorstr=\'#dddddd\',GradientType=0 );background: linear-gradient(top, #cfcfcf 0%,#dddddd 100%);-webkit-box-shadow: inset 0px 1px 0px 0px #E2E2E2;-moz-box-shadow: inset 0px 1px 0px 0px #E2E2E2;box-shadow: inset 0px 1px 0px 0px #E2E2E2;border-top: 1px solid #7A7A7A;height: 25px;}.glimpse-bar .glimpse-icon {margin-top: 3px;float: left;}.glimpse-buttons {text-align: right;float: right;height: 17px;width: 150px;padding: 6px;}.glimpse-title {margin: 0 0 0 15px;padding-top: 5px;font-weight: bold;display: inline-block;width: 75%;overflow: hidden;}.glimpse-title .glimpse-snapshot-type {display: inline-block;height: 20px;}.glimpse-title .glimpse-enviro {padding-left: 10px;white-space: nowrap;height: 20px;}.glimpse-title .glimpse-url .glimpse-drop {padding-left: 10px;}.glimpse-title .glimpse-url .loading {margin: 5px 0 0;font-weight: normal;display: none;}.glimpse-title .glimpse-url .glimpse-drop-over {padding-left: 20px;padding-right: 20px;text-align: center;}.glimpse-title .glimpse-context-stack .glimpse-selectable {cursor:pointer;font-weight:bold;}.glimpse .glimpse-drop {padding: 1px 1px 1px 8px;height: 14px;font-size: 0.9em;}.glimpse .glimpse-drop, .glimpse .glimpse-drop-over {font-weight: normal;font-weight: normal;background: #f7f7f7;background: -moz-linear-gradient(top, #f7f7f7 0%, #e6e6e6 29%, #e2e2e2 31%, #c9c9c9 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f7f7f7), color-stop(29%,#e6e6e6), color-stop(31%,#e2e2e2), color-stop(100%,#c9c9c9));background: -webkit-linear-gradient(top, #f7f7f7 0%,#e6e6e6 29%,#e2e2e2 31%,#c9c9c9 100%);background: -o-linear-gradient(top, #f7f7f7 0%,#e6e6e6 29%,#e2e2e2 31%,#c9c9c9 100%);background: -ms-linear-gradient(top, #f7f7f7 0%,#e6e6e6 29%,#e2e2e2 31%,#c9c9c9 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#f7f7f7\', endColorstr=\'#c9c9c9\',GradientType=0 );background: linear-gradient(top, #f7f7f7 0%,#e6e6e6 29%,#e2e2e2 31%,#c9c9c9 100%);-webkit-box-shadow: inset 0px 1px 0px 0px #F9F9F9;-moz-box-shadow: inset 0px 1px 0px 0px #F9F9F9;box-shadow: inset 0px 1px 0px 0px #F9F9F9;border: 1px solid #A7A7A7;-webkit-border-radius: 3px;-moz-border-radius: 3px;border-radius: 3px;margin: 0 5px 0 0;}.glimpse .glimpse-drop-over {position: absolute;display: none;top: 4px;padding: 1px 10px 10px 10px;z-index: 100;-webkit-box-shadow: 0px 0px 8px 0px #696969;-moz-box-shadow: 0px 0px 8px 0px #696969;box-shadow: 0px 0px 8px 0px #696969;}.glimpse .glimpse-drop-over div {text-align: center;font-weight: bold;margin: 5px 0;}.glimpse .glimpse-drop-arrow-holder {margin: 3px 3px 3px 5px;padding-left: 3px;border-left: 1px solid #A7A7A7;font-size: 9px;height: 9px;width: 10px;}.glimpse .glimpse-drop-arrow {background: url() no-repeat -22px -18px;width: 7px;height: 4px;display: inline-block;}.glimpse-button, .glimpse-button:hover {cursor: pointer;background-image: url();background-repeat: no-repeat;height: 14px;width: 14px;margin-left: 2px;display: inline-block;}.glimpse-meta-warning {background-position: -168px -1px;display: none;}.glimpse-meta-warning:hover {background-position: -183px -1px;}.glimpse-meta-help {background-position: -138px -1px;margin-right: 15px;}.glimpse-meta-help:hover {background-position: -153px -1px;margin-right: 15px;}.glimpse-meta-update {background-position: -198px -1px;display: none;}.glimpse-meta-update:hover {background-position: -213px -1px;}.glimpse-minimize {background-position: -1px -1px;}.glimpse-minimize:hover {background-position: -17px -1px;}.glimpse-close {background-position: -65px -1px;}.glimpse-close:hover {background-position: -81px -1px;}.glimpse-popout {background-position: -96px -1px;}.glimpse-popout:hover {background-position: -111px -1px;}.glimpse-tabs {background: #afafaf;background: -moz-linear-gradient(top, #afafaf 0%, #cfcfcf 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#afafaf), color-stop(100%,#cfcfcf));background: -webkit-linear-gradient(top, #afafaf 0%,#cfcfcf 100%);background: -o-linear-gradient(top, #afafaf 0%,#cfcfcf 100%);background: -ms-linear-gradient(top, #afafaf 0%,#cfcfcf 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#afafaf\', endColorstr=\'#cfcfcf\',GradientType=0 );background: linear-gradient(top, #afafaf 0%,#cfcfcf 100%);border-bottom: 1px solid #A4A4A4;border-top: 1px solid #F9F9F9;-webkit-box-shadow: inset 0px 1px 0px 0px #8b8b8b;-moz-box-shadow: inset 0px 1px 0px 0px #8b8b8b;box-shadow: inset 0px 1px 0px 0px #8b8b8b;font-weight: bold;height: 24px;}.glimpse-tabs ul {margin: 4px 0px 0 0;padding: 0px;}.glimpse-tabs li {display: inline;margin: 0 2px 3px 2px;height: 22px;padding: 4px 9px 3px;color: #565656;cursor: pointer;border-radius: 0px 0px 3px 3px;-moz-border-radius: 0px 0px 3px 3px;-webkit-border-bottom-right-radius: 3px;-webkit-border-bottom-left-radius: 3px;-webkit-transition: color 0.3s ease;-moz-transition: color 0.3s ease;-o-transition: color 0.3s ease;transition: color 0.3s ease;-moz-user-select: -moz-none;-khtml-user-select: none;-webkit-user-select: none;user-select: none;}.glimpse-tabs li.glimpse-hover {padding: 4px 8px 3px;background: #dddddd;background: -moz-linear-gradient(top, #dddddd 0%, #ffffff 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#dddddd), color-stop(100%,#ffffff));background: -webkit-linear-gradient(top, #dddddd 0%,#ffffff 100%);background: -o-linear-gradient(top, #dddddd 0%,#ffffff 100%);background: -ms-linear-gradient(top, #dddddd 0%,#ffffff 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#dddddd\', endColorstr=\'#ffffff\',GradientType=0 );background: linear-gradient(top, #dddddd 0%,#ffffff 100%);-webkit-box-shadow: inset 1px -1px 0px #F9F9F9, inset -1px 0px 0px #F9F9F9;-moz-box-shadow: inset 1px -1px 0px #F9F9F9, inset -1px 0px 0px #F9F9F9;box-shadow: inset 1px -1px 0px #F9F9F9, inset -1px 0px 0px #F9F9F9;border-bottom: 1px solid #8B8B8B;border-left: 1px solid #8B8B8B;border-right: 1px solid #8B8B8B;border-top: 2px solid #DDD;}.glimpse-tabs li.glimpse-active {background: #dddddd;background: -moz-linear-gradient(top, #dddddd 0%, #efefef 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#dddddd), color-stop(100%,#efefef));background: -webkit-linear-gradient(top, #dddddd 0%,#efefef 100%);background: -o-linear-gradient(top, #dddddd 0%,#efefef 100%);background: -ms-linear-gradient(top, #dddddd 0%,#efefef 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#dddddd\', endColorstr=\'#efefef\',GradientType=0 );background: linear-gradient(top, #dddddd 0%,#efefef 100%);-webkit-box-shadow: inset 1px -1px 0px #F9F9F9, inset -1px 0px 0px #F9F9F9;-moz-box-shadow: inset 1px -1px 0px #F9F9F9, inset -1px 0px 0px #F9F9F9;box-shadow: inset 1px -1px 0px #F9F9F9, inset -1px 0px 0px #F9F9F9;border-bottom: 1px solid #8b8b8b;border-left: 1px solid #8b8b8b;border-right: 1px solid #8b8b8b;border-top: 2px solid #DDD;color: #000;padding: 4px 8px 3px;}.glimpse-tabs li.glimpse-disabled {color: #AAA;cursor: default;}.glimpse-panel-holder {}.glimpse-panel {display: none;overflow: auto;position: relative;}.glimpse-panel-message {text-align: center;padding-top: 40px;font-size: 1.1em;color: #AAA;}.glimpse-panel table {border-spacing: 0;width: 100%;}.glimpse-panel table td, .glimpse-panel table th {padding: 3px 4px;text-align: left;vertical-align: top;}.glimpse-panel table td .glimpse-cell {vertical-align: top;}.glimpse-panel tbody .mono {font-family: Consolas, monospace, serif;font-size: 1.1em;}.glimpse-panel tr.glimpse-row-header-0 {height: 19px;}.glimpse-panel .glimpse-row-header-0 th {background: #DFDFDF;background: -moz-linear-gradient(top, #f3f3f3 0%, #f3f3f3 5%, #e6e6e6 6%, #d1d1d1 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f3f3f3), color-stop(5%,#f3f3f3), color-stop(6%,#e6e6e6), color-stop(100%,#d1d1d1));background: -webkit-linear-gradient(top, #f3f3f3 0%,#f3f3f3 5%,#e6e6e6 6%,#d1d1d1 100%);background: -o-linear-gradient(top, #f3f3f3 0%,#f3f3f3 5%,#e6e6e6 6%,#d1d1d1 100%);background: -ms-linear-gradient(top, #f3f3f3 0%,#f3f3f3 5%,#e6e6e6 6%,#d1d1d1 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#f3f3f3\', endColorstr=\'#d1d1d1\',GradientType=0 );background: linear-gradient(top, #f3f3f3 0%,#f3f3f3 5%,#e6e6e6 6%,#d1d1d1 100%);border-bottom: 1px solid #9C9C9C;font-weight: bold;}.glimpse-panel .glimpse-row-header-0 th {border-left: 1px solid #D9D9D9;border-right: 1px solid #9C9C9C;}.glimpse-panel .glimpse-soft {color: #999;}.glimpse-panel .glimpse-cell-key {font-weight: bold;}.glimpse-panel th.glimpse-cell-key {width: 30%;max-width: 150px;}.glimpse-panel table table {border: 1px solid #D9D9D9;}.glimpse-panel table table thead th {background: #f3f3f3;background: -moz-linear-gradient(top, #f3f3f3 0%, #e6e6e6 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f3f3f3), color-stop(100%,#e6e6e6));background: -webkit-linear-gradient(top, #f3f3f3 0%,#e6e6e6 100%);background: -o-linear-gradient(top, #f3f3f3 0%,#e6e6e6 100%);background: -ms-linear-gradient(top, #f3f3f3 0%,#e6e6e6 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#f3f3f3\', endColorstr=\'#e6e6e6\',GradientType=0 );background: linear-gradient(top, #f3f3f3 0%,#e6e6e6 100%);border-bottom: 1px solid #9C9C9C;}.glimpse-panel table table thead tr th {border-left: 1px solid #C6C6C6;border-right: 1px solid #D9D9D9;padding: 1px 4px 2px 4px;}.glimpse-panel table table thead tr th:first-child {border-left: 0px;}.glimpse-panel table table thead tr th:last-child {border-right: 0px;}.glimpse-panel .even, .glimpse-panel .even > td, .glimpse-panel .even > th, .glimpse-panel .even > tr > td, .glimpse-panel .even > tr > th, .even > td > .glimpse-preview-table > tbody > tr > td, .even > tr > td > .glimpse-preview-table > tbody > tr > td {background-color: #F2F5F9;}.glimpse-panel .odd, .glimpse-panel .odd > td, .glimpse-panel .odd > th, .glimpse-panel .odd > tr > td, .glimpse-panel .odd > tr > th, .odd > td > .glimpse-preview-table > tbody > tr > td, .odd > tr > td > .glimpse-preview-table > tbody > tr > td {background-color: #FEFFFF;}.glimpse-panel table table tbody th {font-weight: normal;font-style: italic;}.glimpse-panel table table thead th {font-weight: bold;font-style: normal;}/*.glimpse-panel .glimpse-side-sub-panel {right: 0;z-index: 10;background-color: #FAFCFC;height: 100%;width: 25%;border-left: 1px solid #ACA899;position: absolute;}.glimpse-panel .glimpse-side-main-panel {position: relative;height: 100%;width: 75%;float: left;}*/.glimpse-panel .glimpse-col-side {border-right: 1px solid #404040;background-color: #F2F5F7;position: absolute;width: 200px;height: 100%;left: 0px;}.glimpse-panel .glimpse-col-main {position: absolute;left: 200px;right: 0px;top: 0px;}.glimpse-panel .glimpse-col-side .even, .glimpse-panel .glimpse-col-side .even > td {background-color: #E1E7F0;}.glimpse-panel .glimpse-col-side .odd, .glimpse-panel .glimpse-col-side .odd > td {background-color: #F2F5F7;}.glimpse-panel-holder .glimpse-active {display: block;}.glimpse-resizer {height: 4px;cursor: n-resize;width: 100%;position: absolute;top: -1px;}li.glimpse-permanent {font-style: italic;}.glimpse-preview-object {color: #006400;}.glimpse-preview-string, .glimpse-preview-object .glimpse-preview-string {color: #006400;font-weight: normal !important;}.glimpse-preview-string span {padding-left: 1px;}.glimpse-preview-object span {font-weight: bold;color: #444;}.glimpse-preview-object span.start {margin-right: 5px;}.glimpse-preview-object span.end {margin-left: 5px;}.glimpse-preview-object span.rspace {margin-right: 4px;}.glimpse-preview-object span.mspace {margin: 0 4px;}.glimpse-preview-object span.small {font-size: 0.95em;}.glimpse-panel .glimpse-preview-table {border: 0;}.glimpse-panel .glimpse-preview-table .glimpse-preview-cell {padding-left: 0;padding-right: 2px;width: 11px;}.glimpse-expand {height: 11px;width: 11px;display: inline-block;float: left;margin: 1px 0 0 0;cursor: pointer;background-image: url();background-repeat: no-repeat;background-position: -126px 0;}.glimpse-collapse {background-position: -126px -11px;}.glimpse-preview-show {display: none;font-weight: normal !important;}.glimpse-panel .quiet *, .glimpse-panel .ms * {color: #AAA;}.glimpse-panel .suppress {text-decoration: line-through;}.glimpse-panel .suppress * {color: #AAA;}.glimpse-panel .selected, .glimpse-panel .selected > td, .glimpse-panel .selected > th, .glimpse-panel .selected > tr > td, .glimpse-panel .selected > tr > th, .selected > td > .glimpse-preview-table > tbody > tr > td, .selected > tr > td > .glimpse-preview-table > tbody > tr > td {background-color: #FFFF99;}.glimpse-panel .selected * {color: #409B3B;}.glimpse .info .icon, .glimpse .warn .icon, .glimpse .loading .icon, .glimpse .error .icon, .glimpse .fail .icon, .glimpse .ms .icon, .glimpse .gconnect .icon, .glimpse .gdisconnect .icon {width: 14px;height: 14px;background-image: url();background-repeat: no-repeat;display: inline-block;margin-right: 5px;}.glimpse .gconnect .icon, .glimpse .gdisconnect .icon {width: 17px;height: 17px;}.glimpse .info .icon {background-position: -22px -22px;}.glimpse .warn .icon {background-position: -36px -22px;}.glimpse .loading .icon {background-position: -78px -22px;}.glimpse .error .icon {background-position: -50px -22px;}.glimpse .ms .icon {background-position: -181px -22px;}.glimpse .fail .icon {background-position: -64px -22px;}.glimpse .gconnect .icon {background-position: -213px -20px; /*TODO fix position*/}.glimpse .gdisconnect .icon {background-position: -195px -20px; /*TODO fix position*/}.glimpse .info * {color: #067CE5;}.glimpse .warn * {color: #FE850C;}.glimpse .error * {color: #B40000;}.glimpse .fail * {color: #B40000;font-weight: bold;}.glimpse-notice {position:absolute;right: 20px;bottom: 5px;color: #777;}/*.glimpse-panelitem-Ajax .loading .icon {float: right;}.glimpse-panelitem-Remote .glimpse-side-sub-panel .loading, .glimpse-panelitem-Remote .glimpse-side-main-panel .loading, .glimpse-clear {position: fixed;bottom: 5px;right: 10px;color: #777;}.glimpse-panelitem-Remote .glimpse-side-main-panel .loading {right: 27%;}*/.glimpse-clear {bottom: 30px;position: absolute;right: 20px;background-color: white;padding: 0.2em 1em 0.3em 1em;border: #CCC solid 1px;bottom: 25px;-webkit-border-radius: 3px;-moz-border-radius: 3px;border-radius: 3px;}.glimpse-panel table .glimpse-head-message td {text-align: center;background-color: #DDD;}.glimpse-panelitem-GlimpseMetadata div {text-align: center;}.glimpse-panelitem-GlimpseMetadata .glimpse-panel-message {padding-top: 5px;}.glimpse-panelitem-GlimpseMetadata strong {font-weight: bold;}.glimpse-panelitem-GlimpseMetadata .glimpse-info-more {font-size: 1.5em;margin: 1em 0;}.glimpse-panelitem-GlimpseMetadata .glimpse-info-quote {font-style: italic;margin: 0.75em 0 3em;}.glimpse-pager {background: #C6C6C6;padding: 3px 4px;font-weight: bold;text-align: center;vertical-align: top;}.glimpse-pager .glimpse-pager-message {margin-left: 5px;margin-right: 5px;}.glimpse-pager .glimpse-button {margin-top: 0px;}.glimpse-pager .glimpse-pager-link, .glimpse-pager .glimpse-pager-link:hover {font-weight: bold;}.glimpse-pager .glimpse-pager-link-firstPage {background-position: -2px -38px;}.glimpse-pager .glimpse-pager-link-firstPage-disabled {background-position: -17px -38px;}.glimpse-pager .glimpse-pager-link-previousPage {background-position: -33px -38px;}.glimpse-pager .glimpse-pager-link-previousPage-disabled {background-position: -49px -38px;}.glimpse-pager .glimpse-pager-link-nextPage {background-position: -65px -38px;}.glimpse-pager .glimpse-pager-link-nextPage-disabled {background-position: -81px -38px;}.glimpse-pager .glimpse-pager-link-lastPage {background-position: -96px -38px;}.glimpse-pager .glimpse-pager-link-lastPage-disabled {background-position: -111px -38px;}.glimpse-panel table tr.glimpse-pager-separator td {border-bottom: 3px solid #C6C6C6;}@media screen and (-webkit-min-device-pixel-ratio:0) {.glimpse-tabs li.glimpse-hover, .glimpse-tabs li.glimpse-active {border-top: 1px solid #DDD;}}.glimpse-panel .glimpse-sub-text {color: #AAA;font-size: 0.9em;margin-left: 5px;top:-1px;position:relative;}.glimpse-popup {color:#000;background:#FFF;margin:0;padding:0;} .glimpse-popup .glimpse-holder {position:relative !important;display: block !important; } .glimpse-popup .glimpse-popout, .glimpse-popup .glimpse-minimize, .glimpse-popup .glimpse-close, .glimpse-popup .glimpse-terminate, .glimpse-popup .glimpse-open {display:none !important; } .glimpse-popup .glimpse-panel {overflow:visible !important; }.glimpse ::-webkit-scrollbar-corner {vbackground: transparent;}.glimpse ::-webkit-scrollbar-corner {background-clip: padding-box;background-color: whiteSmoke;border: solid white;box-shadow: inset 1px 1px 0 rgba(0,0,0,.14);border-width: 3px 0 0 3px;}.glimpse ::-webkit-scrollbar-track-piece {background-clip: padding-box;background-color: whiteSmoke;border: solid white;box-shadow: inset 1px 0 0 rgba(0,0,0,.14),inset -1px 0 0 rgba(0,0,0,.07);border-width: 0 0 0 3px;}.glimpse ::-webkit-scrollbar-track {background-clip: padding-box;border: solid transparent;border-width: 0 0 0 7px;}.glimpse ::-webkit-scrollbar-button {height: 0;width: 0;}.glimpse ::-webkit-scrollbar-thumb {background-color: rgba(0, 0, 0, .2);background-clip: padding-box;border: solid transparent;min-height: 28px;padding: 100px 0 0;box-shadow: inset 1px 1px 0 rgba(0,0,0,.1),inset 0 -1px 0 rgba(0,0,0,.07);border-width: 0 0 0 7px; border-width: 1px 1px 1px 5px;}.glimpse ::-webkit-scrollbar {height: 16px;overflow: visible;width: 16px;}';
+                    var version = data.currentMetadata().request.runningVersion;
+                    template.css = '.glimpse, .glimpse *, .glimpse a, .glimpse td, .glimpse th, .glimpse table {font-family: Helvetica, Arial, sans-serif;background-color: transparent;font-size: 11px;line-height: 14px;border: 0px;color: #232323;text-align: left;}.glimpse table {min-width: 0;}.glimpse a, .glimpse a:hover, .glimpse a:visited {color: #2200C1;text-decoration: underline;font-weight: normal;}.glimpse a:active {color: #c11;text-decoration: underline;font-weight: normal;}.glimpse th {font-weight: bold;}.glimpse-open {z-index: 100010;position: fixed;right: 0;bottom: 0;height: 27px;width: 28px;background: #cfcfcf;background: -moz-linear-gradient(top, #cfcfcf 0%, #dddddd 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#cfcfcf), color-stop(100%,#dddddd));background: -webkit-linear-gradient(top, #cfcfcf 0%,#dddddd 100%);background: -o-linear-gradient(top, #cfcfcf 0%,#dddddd 100%);background: -ms-linear-gradient(top, #cfcfcf 0%,#dddddd 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#cfcfcf\', endColorstr=\'#dddddd\',GradientType=0 );background: linear-gradient(top, #cfcfcf 0%,#dddddd 100%);-webkit-box-shadow: inset 0px 1px 0px 0px #E2E2E2;-moz-box-shadow: inset 0px 1px 0px 0px #E2E2E2;box-shadow: inset 0px 1px 0px 0px #E2E2E2;border-top: 1px solid #7A7A7A;border-left: 1px solid #7A7A7A;}.glimpse-icon {background: url() 0px -16px;height: 20px;width: 20px;margin: 3px 4px 0;cursor: pointer;}.glimpse-holder {display: none;z-index: 100010 !important;height: 0;position: fixed;bottom: 0;left: 0;width: 100%;background-color: #fff;}.glimpse-bar {background: #cfcfcf;background: -moz-linear-gradient(top, #cfcfcf 0%, #dddddd 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#cfcfcf), color-stop(100%,#dddddd));background: -webkit-linear-gradient(top, #cfcfcf 0%,#dddddd 100%);background: -o-linear-gradient(top, #cfcfcf 0%,#dddddd 100%);background: -ms-linear-gradient(top, #cfcfcf 0%,#dddddd 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#cfcfcf\', endColorstr=\'#dddddd\',GradientType=0 );background: linear-gradient(top, #cfcfcf 0%,#dddddd 100%);-webkit-box-shadow: inset 0px 1px 0px 0px #E2E2E2;-moz-box-shadow: inset 0px 1px 0px 0px #E2E2E2;box-shadow: inset 0px 1px 0px 0px #E2E2E2;border-top: 1px solid #7A7A7A;height: 25px;}.glimpse-bar .glimpse-icon {margin-top: 3px;float: left;}.glimpse-buttons {text-align: right;float: right;height: 17px;width: 150px;padding: 6px;}.glimpse-title {margin: 0 0 0 15px;padding-top: 5px;font-weight: bold;display: inline-block;width: 75%;overflow: hidden;}.glimpse-title .glimpse-snapshot-type {display: inline-block;height: 20px;}.glimpse-title .glimpse-enviro {padding-left: 10px;white-space: nowrap;height: 20px;}.glimpse-title .glimpse-url .glimpse-drop {padding-left: 10px;}.glimpse-title .glimpse-url .loading {margin: 5px 0 0;font-weight: normal;display: none;}.glimpse-title .glimpse-url .glimpse-drop-over {padding-left: 20px;padding-right: 20px;text-align: center;}.glimpse-title .glimpse-context-stack .glimpse-selectable {cursor:pointer;font-weight:bold;}.glimpse .glimpse-drop {padding: 1px 1px 1px 8px;height: 14px;font-size: 0.9em;}.glimpse .glimpse-drop, .glimpse .glimpse-drop-over {font-weight: normal;font-weight: normal;background: #f7f7f7;background: -moz-linear-gradient(top, #f7f7f7 0%, #e6e6e6 29%, #e2e2e2 31%, #c9c9c9 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f7f7f7), color-stop(29%,#e6e6e6), color-stop(31%,#e2e2e2), color-stop(100%,#c9c9c9));background: -webkit-linear-gradient(top, #f7f7f7 0%,#e6e6e6 29%,#e2e2e2 31%,#c9c9c9 100%);background: -o-linear-gradient(top, #f7f7f7 0%,#e6e6e6 29%,#e2e2e2 31%,#c9c9c9 100%);background: -ms-linear-gradient(top, #f7f7f7 0%,#e6e6e6 29%,#e2e2e2 31%,#c9c9c9 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#f7f7f7\', endColorstr=\'#c9c9c9\',GradientType=0 );background: linear-gradient(top, #f7f7f7 0%,#e6e6e6 29%,#e2e2e2 31%,#c9c9c9 100%);-webkit-box-shadow: inset 0px 1px 0px 0px #F9F9F9;-moz-box-shadow: inset 0px 1px 0px 0px #F9F9F9;box-shadow: inset 0px 1px 0px 0px #F9F9F9;border: 1px solid #A7A7A7;-webkit-border-radius: 3px;-moz-border-radius: 3px;border-radius: 3px;margin: 0 5px 0 0;}.glimpse .glimpse-drop-over {position: absolute;display: none;top: 4px;padding: 1px 10px 10px 10px;z-index: 100;-webkit-box-shadow: 0px 0px 8px 0px #696969;-moz-box-shadow: 0px 0px 8px 0px #696969;box-shadow: 0px 0px 8px 0px #696969;}.glimpse .glimpse-drop-over div {text-align: center;font-weight: bold;margin: 5px 0;}.glimpse .glimpse-drop-arrow-holder {margin: 3px 3px 3px 5px;padding-left: 3px;border-left: 1px solid #A7A7A7;font-size: 9px;height: 9px;width: 10px;}.glimpse .glimpse-drop-arrow {background: url() no-repeat -22px -18px;width: 7px;height: 4px;display: inline-block;}.glimpse-button, .glimpse-button:hover {cursor: pointer;background-image: url();background-repeat: no-repeat;height: 14px;width: 14px;margin-left: 2px;display: inline-block;}.glimpse-meta-warning {background-position: -168px -1px;display: none;}.glimpse-meta-warning:hover {background-position: -183px -1px;}.glimpse-meta-help {background-position: -138px -1px;margin-right: 15px;}.glimpse-meta-help:hover {background-position: -153px -1px;margin-right: 15px;}.glimpse-meta-update {background-position: -198px -1px;display: none;}.glimpse-meta-update:hover {background-position: -213px -1px;}.glimpse-minimize {background-position: -1px -1px;}.glimpse-minimize:hover {background-position: -17px -1px;}.glimpse-close {background-position: -65px -1px;}.glimpse-close:hover {background-position: -81px -1px;}.glimpse-popout {background-position: -96px -1px;}.glimpse-popout:hover {background-position: -111px -1px;}.glimpse-tabs {background: #afafaf;background: -moz-linear-gradient(top, #afafaf 0%, #cfcfcf 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#afafaf), color-stop(100%,#cfcfcf));background: -webkit-linear-gradient(top, #afafaf 0%,#cfcfcf 100%);background: -o-linear-gradient(top, #afafaf 0%,#cfcfcf 100%);background: -ms-linear-gradient(top, #afafaf 0%,#cfcfcf 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#afafaf\', endColorstr=\'#cfcfcf\',GradientType=0 );background: linear-gradient(top, #afafaf 0%,#cfcfcf 100%);border-bottom: 1px solid #A4A4A4;border-top: 1px solid #F9F9F9;-webkit-box-shadow: inset 0px 1px 0px 0px #8b8b8b;-moz-box-shadow: inset 0px 1px 0px 0px #8b8b8b;box-shadow: inset 0px 1px 0px 0px #8b8b8b;font-weight: bold;height: 24px;}.glimpse-tabs ul {margin: 4px 0px 0 0;padding: 0px;}.glimpse-tabs li {display: inline;margin: 0 2px 3px 2px;height: 22px;padding: 4px 9px 3px;color: #565656;cursor: pointer;border-radius: 0px 0px 3px 3px;-moz-border-radius: 0px 0px 3px 3px;-webkit-border-bottom-right-radius: 3px;-webkit-border-bottom-left-radius: 3px;-webkit-transition: color 0.3s ease;-moz-transition: color 0.3s ease;-o-transition: color 0.3s ease;transition: color 0.3s ease;-moz-user-select: -moz-none;-khtml-user-select: none;-webkit-user-select: none;user-select: none;}.glimpse-tabs li.glimpse-hover {padding: 4px 8px 3px;background: #dddddd;background: -moz-linear-gradient(top, #dddddd 0%, #ffffff 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#dddddd), color-stop(100%,#ffffff));background: -webkit-linear-gradient(top, #dddddd 0%,#ffffff 100%);background: -o-linear-gradient(top, #dddddd 0%,#ffffff 100%);background: -ms-linear-gradient(top, #dddddd 0%,#ffffff 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#dddddd\', endColorstr=\'#ffffff\',GradientType=0 );background: linear-gradient(top, #dddddd 0%,#ffffff 100%);-webkit-box-shadow: inset 1px -1px 0px #F9F9F9, inset -1px 0px 0px #F9F9F9;-moz-box-shadow: inset 1px -1px 0px #F9F9F9, inset -1px 0px 0px #F9F9F9;box-shadow: inset 1px -1px 0px #F9F9F9, inset -1px 0px 0px #F9F9F9;border-bottom: 1px solid #8B8B8B;border-left: 1px solid #8B8B8B;border-right: 1px solid #8B8B8B;border-top: 2px solid #DDD;}.glimpse-tabs li.glimpse-active {background: #dddddd;background: -moz-linear-gradient(top, #dddddd 0%, #efefef 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#dddddd), color-stop(100%,#efefef));background: -webkit-linear-gradient(top, #dddddd 0%,#efefef 100%);background: -o-linear-gradient(top, #dddddd 0%,#efefef 100%);background: -ms-linear-gradient(top, #dddddd 0%,#efefef 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#dddddd\', endColorstr=\'#efefef\',GradientType=0 );background: linear-gradient(top, #dddddd 0%,#efefef 100%);-webkit-box-shadow: inset 1px -1px 0px #F9F9F9, inset -1px 0px 0px #F9F9F9;-moz-box-shadow: inset 1px -1px 0px #F9F9F9, inset -1px 0px 0px #F9F9F9;box-shadow: inset 1px -1px 0px #F9F9F9, inset -1px 0px 0px #F9F9F9;border-bottom: 1px solid #8b8b8b;border-left: 1px solid #8b8b8b;border-right: 1px solid #8b8b8b;border-top: 2px solid #DDD;color: #000;padding: 4px 8px 3px;}.glimpse-tabs li.glimpse-disabled {color: #AAA;cursor: default;}.glimpse-panel-holder {}.glimpse-panel {display: none;overflow: auto;position: relative;}.glimpse-panel-message {text-align: center;padding-top: 40px;font-size: 1.1em;color: #AAA;}.glimpse-panel table {border-spacing: 0;width: 100%;}.glimpse-panel table td, .glimpse-panel table th {padding: 3px 4px;text-align: left;vertical-align: top;}.glimpse-panel table td .glimpse-cell {vertical-align: top;}.glimpse-panel tbody .mono {font-family: Consolas, monospace, serif;font-size: 1.1em;}.glimpse-panel tr.glimpse-row-header-0 {height: 19px;}.glimpse-panel .glimpse-row-header-0 th {background: #DFDFDF;background: -moz-linear-gradient(top, #f3f3f3 0%, #f3f3f3 5%, #e6e6e6 6%, #d1d1d1 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f3f3f3), color-stop(5%,#f3f3f3), color-stop(6%,#e6e6e6), color-stop(100%,#d1d1d1));background: -webkit-linear-gradient(top, #f3f3f3 0%,#f3f3f3 5%,#e6e6e6 6%,#d1d1d1 100%);background: -o-linear-gradient(top, #f3f3f3 0%,#f3f3f3 5%,#e6e6e6 6%,#d1d1d1 100%);background: -ms-linear-gradient(top, #f3f3f3 0%,#f3f3f3 5%,#e6e6e6 6%,#d1d1d1 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#f3f3f3\', endColorstr=\'#d1d1d1\',GradientType=0 );background: linear-gradient(top, #f3f3f3 0%,#f3f3f3 5%,#e6e6e6 6%,#d1d1d1 100%);border-bottom: 1px solid #9C9C9C;font-weight: bold;}.glimpse-panel .glimpse-row-header-0 th {border-left: 1px solid #D9D9D9;border-right: 1px solid #9C9C9C;}.glimpse-panel .glimpse-soft {color: #999;}.glimpse-panel .glimpse-cell-key {font-weight: bold;}.glimpse-panel th.glimpse-cell-key {width: 30%;max-width: 150px;}.glimpse-panel table table {border: 1px solid #D9D9D9;}.glimpse-panel table table thead th {background: #f3f3f3;background: -moz-linear-gradient(top, #f3f3f3 0%, #e6e6e6 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f3f3f3), color-stop(100%,#e6e6e6));background: -webkit-linear-gradient(top, #f3f3f3 0%,#e6e6e6 100%);background: -o-linear-gradient(top, #f3f3f3 0%,#e6e6e6 100%);background: -ms-linear-gradient(top, #f3f3f3 0%,#e6e6e6 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#f3f3f3\', endColorstr=\'#e6e6e6\',GradientType=0 );background: linear-gradient(top, #f3f3f3 0%,#e6e6e6 100%);border-bottom: 1px solid #9C9C9C;}.glimpse-panel table table thead tr th {border-left: 1px solid #C6C6C6;border-right: 1px solid #D9D9D9;padding: 1px 4px 2px 4px;}.glimpse-panel table table thead tr th:first-child {border-left: 0px;}.glimpse-panel table table thead tr th:last-child {border-right: 0px;}.glimpse-panel .even, .glimpse-panel .even > td, .glimpse-panel .even > th, .glimpse-panel .even > tr > td, .glimpse-panel .even > tr > th, .even > td > .glimpse-preview-table > tbody > tr > td, .even > tr > td > .glimpse-preview-table > tbody > tr > td {background-color: #F2F5F9;}.glimpse-panel .odd, .glimpse-panel .odd > td, .glimpse-panel .odd > th, .glimpse-panel .odd > tr > td, .glimpse-panel .odd > tr > th, .odd > td > .glimpse-preview-table > tbody > tr > td, .odd > tr > td > .glimpse-preview-table > tbody > tr > td {background-color: #FEFFFF;}.glimpse-panel table table tbody th {font-weight: normal;font-style: italic;}.glimpse-panel table table thead th {font-weight: bold;font-style: normal;}/*.glimpse-panel .glimpse-side-sub-panel {right: 0;z-index: 10;background-color: #FAFCFC;height: 100%;width: 25%;border-left: 1px solid #ACA899;position: absolute;}.glimpse-panel .glimpse-side-main-panel {position: relative;height: 100%;width: 75%;float: left;}*/.glimpse-panel .glimpse-col-side {border-right: 1px solid #404040;background-color: #F2F5F7;position: absolute;width: 200px;height: 100%;left: 0px;}.glimpse-panel .glimpse-col-main {position: absolute;left: 200px;right: 0px;top: 0px;}.glimpse-col-side .even, .glimpse-col-side .even > td {background-color: #E1E7F0;}.glimpse-col-side .odd, .glimpse-col-side .odd > td {background-color: #F2F5F7;}.glimpse-panel-holder .glimpse-active {display: block;}.glimpse-resizer {height: 4px;cursor: n-resize;width: 100%;position: absolute;top: -1px;}li.glimpse-permanent {font-style: italic;}.glimpse-preview-object {color: #006400;}.glimpse-preview-string, .glimpse-preview-object .glimpse-preview-string {color: #006400;font-weight: normal !important;}.glimpse-preview-string span {padding-left: 1px;}.glimpse-preview-object span {font-weight: bold;color: #444;}.glimpse-preview-object span.start {margin-right: 5px;}.glimpse-preview-object span.end {margin-left: 5px;}.glimpse-preview-object span.rspace {margin-right: 4px;}.glimpse-preview-object span.mspace {margin: 0 4px;}.glimpse-preview-object span.small {font-size: 0.95em;}.glimpse-panel .glimpse-preview-table {border: 0;}.glimpse-panel .glimpse-preview-table .glimpse-preview-cell {padding-left: 0;padding-right: 2px;width: 11px;}.glimpse-expand {height: 11px;width: 11px;display: inline-block;float: left;margin: 1px 0 0 0;cursor: pointer;background-image: url();background-repeat: no-repeat;background-position: -126px 0;}.glimpse-collapse {background-position: -126px -11px;}.glimpse-preview-show {display: none;font-weight: normal !important;}.glimpse-panel .quiet *, .glimpse-panel .ms * {color: #AAA;}.glimpse-panel .suppress {text-decoration: line-through;}.glimpse-panel .suppress * {color: #AAA;}.glimpse-panel .selected, .glimpse-panel .selected > td, .glimpse-panel .selected > th, .glimpse-panel .selected > tr > td, .glimpse-panel .selected > tr > th, .selected > td > .glimpse-preview-table > tbody > tr > td, .selected > tr > td > .glimpse-preview-table > tbody > tr > td {background-color: #FFFF99;}.glimpse-panel .selected * {color: #409B3B;}.glimpse .info .icon, .glimpse .warn .icon, .glimpse .loading .icon, .glimpse .error .icon, .glimpse .fail .icon, .glimpse .ms .icon, .glimpse .gconnect .icon, .glimpse .gdisconnect .icon {width: 14px;height: 14px;background-image: url();background-repeat: no-repeat;display: inline-block;margin-right: 5px;}.glimpse .gconnect .icon, .glimpse .gdisconnect .icon {width: 17px;height: 17px;}.glimpse .info .icon {background-position: -22px -22px;}.glimpse .warn .icon {background-position: -36px -22px;}.glimpse .loading .icon {background-position: -78px -22px;}.glimpse .error .icon {background-position: -50px -22px;}.glimpse .ms .icon {background-position: -181px -22px;}.glimpse .fail .icon {background-position: -64px -22px;}.glimpse .gconnect .icon {background-position: -213px -20px; /*TODO fix position*/}.glimpse .gdisconnect .icon {background-position: -195px -20px; /*TODO fix position*/}.glimpse .info * {color: #067CE5;}.glimpse .warn * {color: #FE850C;}.glimpse .error * {color: #B40000;}.glimpse .fail * {color: #B40000;font-weight: bold;}.glimpse-notice {position:absolute;right: 20px;bottom: 5px;color: #777;}/*.glimpse-panelitem-Ajax .loading .icon {float: right;}.glimpse-panelitem-Remote .glimpse-side-sub-panel .loading, .glimpse-panelitem-Remote .glimpse-side-main-panel .loading, .glimpse-clear {position: fixed;bottom: 5px;right: 10px;color: #777;}.glimpse-panelitem-Remote .glimpse-side-main-panel .loading {right: 27%;}*/.glimpse-clear {bottom: 30px;position: absolute;right: 20px;background-color: white;padding: 0.2em 1em 0.3em 1em;border: #CCC solid 1px;bottom: 25px;-webkit-border-radius: 3px;-moz-border-radius: 3px;border-radius: 3px;}.glimpse-panel table .glimpse-head-message td {text-align: center;background-color: #DDD;}.glimpse-panelitem-GlimpseMetadata div {text-align: center;}.glimpse-panelitem-GlimpseMetadata .glimpse-panel-message {padding-top: 5px;}.glimpse-panelitem-GlimpseMetadata strong {font-weight: bold;}.glimpse-panelitem-GlimpseMetadata .glimpse-info-more {font-size: 1.5em;margin: 1em 0;}.glimpse-panelitem-GlimpseMetadata .glimpse-info-quote {font-style: italic;margin: 0.75em 0 3em;}.glimpse-pager {background: #C6C6C6;padding: 3px 4px;font-weight: bold;text-align: center;vertical-align: top;}.glimpse-pager .glimpse-pager-message {margin-left: 5px;margin-right: 5px;}.glimpse-pager .glimpse-button {margin-top: 0px;}.glimpse-pager .glimpse-pager-link, .glimpse-pager .glimpse-pager-link:hover {font-weight: bold;}.glimpse-pager .glimpse-pager-link-firstPage {background-position: -2px -38px;}.glimpse-pager .glimpse-pager-link-firstPage-disabled {background-position: -17px -38px;}.glimpse-pager .glimpse-pager-link-previousPage {background-position: -33px -38px;}.glimpse-pager .glimpse-pager-link-previousPage-disabled {background-position: -49px -38px;}.glimpse-pager .glimpse-pager-link-nextPage {background-position: -65px -38px;}.glimpse-pager .glimpse-pager-link-nextPage-disabled {background-position: -81px -38px;}.glimpse-pager .glimpse-pager-link-lastPage {background-position: -96px -38px;}.glimpse-pager .glimpse-pager-link-lastPage-disabled {background-position: -111px -38px;}.glimpse-panel table tr.glimpse-pager-separator td {border-bottom: 3px solid #C6C6C6;}@media screen and (-webkit-min-device-pixel-ratio:0) {.glimpse-tabs li.glimpse-hover, .glimpse-tabs li.glimpse-active {border-top: 1px solid #DDD;}}.glimpse-panel .glimpse-sub-text {color: #AAA;font-size: 0.9em;margin-left: 5px;top:-1px;position:relative;}.glimpse-popup {color:#000;background:#FFF;margin:0;padding:0;} .glimpse-popup .glimpse-holder {position:relative !important;display: block !important; } .glimpse-popup .glimpse-popout, .glimpse-popup .glimpse-minimize, .glimpse-popup .glimpse-close, .glimpse-popup .glimpse-terminate, .glimpse-popup .glimpse-open {display:none !important; } .glimpse-popup .glimpse-panel {overflow:visible !important; }.glimpse ::-webkit-scrollbar-corner {vbackground: transparent;}.glimpse ::-webkit-scrollbar-corner {background-clip: padding-box;background-color: whiteSmoke;border: solid white;box-shadow: inset 1px 1px 0 rgba(0,0,0,.14);border-width: 3px 0 0 3px;}.glimpse ::-webkit-scrollbar-track-piece {background-clip: padding-box;background-color: whiteSmoke;border: solid white;box-shadow: inset 1px 0 0 rgba(0,0,0,.14),inset -1px 0 0 rgba(0,0,0,.07);border-width: 0 0 0 3px;}.glimpse ::-webkit-scrollbar-track {background-clip: padding-box;border: solid transparent;border-width: 0 0 0 7px;}.glimpse ::-webkit-scrollbar-button {height: 0;width: 0;}.glimpse ::-webkit-scrollbar-thumb {background-color: rgba(0, 0, 0, .2);background-clip: padding-box;border: solid transparent;min-height: 28px;padding: 100px 0 0;box-shadow: inset 1px 1px 0 rgba(0,0,0,.1),inset 0 -1px 0 rgba(0,0,0,.07);border-width: 0 0 0 7px; border-width: 1px 1px 1px 5px;}.glimpse ::-webkit-scrollbar {height: 16px;overflow: visible;width: 16px;}';
                     template.html = '<div class="glimpse-spacer"></div><div class="glimpse-open"><div class="glimpse-icon"></div></div><div class="glimpse-holder glimpse"><div class="glimpse-resizer"></div><div class="glimpse-bar"><div class="glimpse-icon" title="About Glimpse?"></div><div class="glimpse-title"><span class="glimpse-snapshot-type"></span><span><span class="glimpse-enviro"></span><span class="glimpse-context-stack"></span><span class="glimpse-url"></span></span></div><div class="glimpse-buttons"><a class="glimpse-meta-warning glimpse-button" href="#" title="Glimpse has some warnings!"></a><a class="glimpse-meta-update glimpse-button" href="http://www.nuget.org/List/Packages/Glimpse" title="New version of Glimpse available" target="_blank"></a><a class="glimpse-meta-help glimpse-button" href="#" title="Need some help?"></a><a class="glimpse-minimize glimpse-button" href="#" title="Close/Minimize"></a><a class="glimpse-popout glimpse-button" href="#" title="Pop Out"></a><a class="glimpse-close glimpse-button" href="#" title="Shutdown/Terminate"></a></div></div><div class="glimpse-content"><div class="glimpse-tabs"><ul></ul></div><div class="glimpse-panel-holder"></div><div class="glimpse-options"></div></div></div>';
                     template.metadata = '<div class="glimpse-info-title"><a href="http://getGlimpse.com/" target="_blank"><img border="0" src="' + glimpsePath + 'logo.png" /></a></div><div>v' + version + '</div><div class="glimpse-info-quote">"What Firebug is for the client, Glimpse is for the server"</div><div class="glimpse-info-more">Go to your Glimpse Config page <a href="' + glimpsePath + 'Config" target="_blank">Glimpse.axd</a></div><div class="glimpse-info-more">For more info see <a href="http://getGlimpse.com" target="_blank">http://getGlimpse.com</a></div><div style="margin:1.5em 0 0.5em;">Created by<strong>Anthony van der Hoorn</strong> (<a href="http://twitter.com/anthony_vdh" target="_blank">@anthony_vdh</a>) and<strong>Nik Molnar</strong> (<a href="http://twitter.com/nikmd23" target="_blank">@nikmd23</a>)&nbsp; - &copy; getglimpse.com 2011</div><div>Have a <em>feature</em> request? <a href="http://getglimpse.uservoice.com" target="_blank">Submit the idea</a>. &nbsp; &nbsp;Found an <em>error</em>? <a href="https://github.com/glimpse/glimpse/issues" target="_blank">Help us improve</a>. &nbsp; &nbsp;Have a <em>question</em>? <a href="http://twitter.com/#search?q=%23glimpse" target="_blank">Tweet us using #glimpse</a>. &nbsp; &nbsp;Want to <em>help</em>? <a href="groups.google.com/group/getglimpse-dev" target="_blank">Join our developer mailing list</a>.</div>';
         
@@ -449,8 +464,12 @@ var glimpse = (function ($, scope) {
                  
                 selectedPanel = function (key) {
                     var panel = elements.panelHolder.find('.glimpse-panel[data-glimpseKey="' + key + '"]');  
-                    if (panel.length == 0) {
-                        panel = renderPanel(key, data.current().data[key], data.currentMetadata().plugins[key]);   
+        
+                    if (panel.length == 0 || panel.hasClass('glimpse-lazy-item')) { 
+                        if (panel.length > 0) 
+                            panel.remove(); 
+                        panel = renderPanel(key, data.current().data[key], data.currentMetadata().plugins[key]); 
+        
                         pubsub.publish('action.plugin.created', key); 
                     }
                     
@@ -468,8 +487,10 @@ var glimpse = (function ($, scope) {
         
                     if (!pluginData.isLazy && pluginData.data)
                         renderEngine.insert(panel, pluginData.data, metadata);
-                    else
+                    else {
+                        panel.addClass('glimpse-lazy-item');
                         pubsub.publishAsync('action.plugin.lazyload', key);
+                    }
         
                     var end = new Date().getTime(); 
                     console.log('Total render time for "' + key + '": ' + (end - start));
@@ -501,6 +522,7 @@ var glimpse = (function ($, scope) {
                     pubsub.publish('state.render');  
                 },
                 renderLayout = function () { 
+                    pubsub.publish('action.data.applied');
                     pubsub.publish('state.build.prerender');
                     
                     clearPreviousLayout();
@@ -536,7 +558,7 @@ var glimpse = (function ($, scope) {
                 //Main
                 build = function () {
                     pubsub.publish('state.build.template');  
-                    pubsub.publish('state.build.template.modify');
+                    pubsub.publish('state.build.template.modify', template);
                             
                     $(getCss()).appendTo('head'); 
                     $(getHtml()).appendTo('body');
@@ -709,8 +731,8 @@ var glimpse = (function ($, scope) {
                 //Main
                 renderMetadata = function() {
                     var html = '<div class="glimpse-panel glimpse-panelitem-' + metadataKey + '" data-glimpseKey="' + metadataKey + '">' + template.metadata + '</div>';
-                    return panel = $(html).appendTo(elements.panelHolder);
-                }
+                    return $(html).appendTo(elements.panelHolder);
+                },
                 metadata = function () {
                     var panel = elements.panelHolder.find('.glimpse-panel[data-glimpseKey="' + metadataKey + '"]');  
                     if (panel.length == 0) {
@@ -827,15 +849,17 @@ var glimpse = (function ($, scope) {
                 wireListeners = function() {
                     pubsub.subscribe('action.plugin.lazyload', function(subject, payload) { fetch(payload); }); 
                 },   
-                retrievePlugin = function(key, callback) {  
+                retrievePlugin = function(key) {   
+                    var currentData = data.current();
                     $.ajax({
                         url : glimpsePath + 'History',
                         type : 'GET',
-                        data : { 'ClientRequestID' : inner.requestId, 'PluginKey' : key },
+                        data : { 'ClientRequestID' : currentData.requestId, 'PluginKey' : key },
                         contentType : 'application/json',
-                        success : function (result, textStatus, jqXHR) { 
-                            var currentData = data.current();
-                            currentData.data[key].data = data;  
+                        success : function (result) {
+                            var itemData = currentData.data[key];
+                            itemData.data = result;  
+                            itemData.isLazy = false;
         
                             pubsub.publishAsync('action.tab.select', key);
                         }
@@ -860,7 +884,7 @@ var glimpse = (function ($, scope) {
         
                 //Main 
                 check = function () {
-                    var metadata = data.currentMetadata();
+                    var metadata = data.currentMetadata(),
                         newestVersion = util.cookie('glimpseLatestVersion'),
                         currentVersion = '';
         
@@ -1582,7 +1606,9 @@ var glimpse = (function ($, scope) {
         elements : elements,
         render : renderEngine,
         objects : objects,
-        data : data 
+        data : data,
+        util : util,
+        settings : settings
     };
 }($Glimpse, $Glimpse(document)));
 
@@ -1597,16 +1623,17 @@ $Glimpse(document).ready(function() {
 
 var glimpseAjaxPlugin = (function ($, glimpse) {
 
-/*(im port:glimpse.ajax.spy.js|2)*/ 
+/*(im port:glimpse.plugin.ajax.spy.js|2)*/ 
     
     var //Support
         isActive = false, 
         resultCount = 0,
-        notice = undefined,
-        currentData = undefined,
+        notice = undefined, 
+        currentId = undefined,
         wireListener = function () {  
             glimpse.pubsub.subscribe('data.elements.processed', wireDomListeners); 
-            glimpse.pubsub.subscribe('state.build.prerender', setupData); 
+            glimpse.pubsub.subscribe('action.data.applied', setupData);
+            glimpse.pubsub.subscribe('action.data.applied', contextChanged);
             glimpse.pubsub.subscribe('action.plugin.deactive', function (topic, payload) { if (payload == 'Ajax') { deactive(); } }); 
             glimpse.pubsub.subscribe('action.plugin.active', function (topic, payload) {  if (payload == 'Ajax') { active(); } }); 
         },
@@ -1617,35 +1644,14 @@ var glimpseAjaxPlugin = (function ($, glimpse) {
             panel.find('tbody a').live('click', function () { selected($(this)); return false; });
             panel.find('.glimpse-head-message a').live('click', function() { reset(); return false; });
         },
+        
         setupData = function () {
             var payload = glimpse.data.current(),
                 metadata = glimpse.data.currentMetadata().plugins;
-
-            //If we are looking at an ajax request or reloading our original reuqest we want to keep
-            if (!payload.isAjax && (!currentData || currentData.requestId != payload.requestId)) {
-                currentData = payload;
-
-                payload.data.Ajax = { name: 'Ajax', data: 'No requests currently detected...' };
-                metadata.Ajax = { helpUrl: 'http://getglimpse.com/Help/Plugin/Ajax' };
-                
-                togglePermanent(false);
-            }
-            else 
-                togglePermanent(true);
-        },
-        
-        togglePermanent = function (makePermanent) {
-            if (glimpse.elements.findPanel) {
-                if (makePermanent) {
-                    glimpse.elements.findPanel('Ajax').addClass('glimpse-permanent');
-                    glimpse.elements.findTab('Ajax').addClass('glimpse-permanent');
-                }
-                else {
-                    glimpse.elements.findPanel('Ajax').removeClass('glimpse-permanent');
-                    glimpse.elements.findTab('Ajax').removeClass('glimpse-permanent');
-                }
-            }
-        },
+                 
+            payload.data.Ajax = { name: 'Ajax', data: 'No requests currently detected...', isPermanent : true };
+            metadata.Ajax = { helpUrl: 'http://getglimpse.com/Help/Plugin/Ajax' }; 
+        }, 
         
         active = function () {
             isActive = true;
@@ -1659,6 +1665,16 @@ var glimpseAjaxPlugin = (function ($, glimpse) {
             glimpse.elements.options.html('');
             notice = null;
         }, 
+        contextChanged = function () {
+            var payload = glimpse.data.current(),
+                newId = payload.isAjax ? payload.parentId : payload.requestId,
+                panel = glimpse.elements.findPanel('Ajax');
+
+            if (currentId != newId)
+                panel.find('tbody').empty();
+            
+            currentId = newId;
+        },
         
         retreieveSummary = function () { 
             if (!isActive) { return; }
@@ -1667,7 +1683,7 @@ var glimpseAjaxPlugin = (function ($, glimpse) {
             notice.prePoll(); 
             $.ajax({
                 url: glimpsePath + 'Ajax',
-                data: { 'glimpseId' : currentData.requestId },
+                data: { 'glimpseId' : currentId },
                 type: 'GET',
                 contentType: 'application/json',
                 complete : function(jqXHR, textStatus) {
@@ -1677,9 +1693,7 @@ var glimpseAjaxPlugin = (function ($, glimpse) {
                 },
                 success: function (result) {
                     if (!isActive) { return; } 
-                    if (resultCount != result.length)
-                        processSummary(result);
-                    resultCount = result.length; 
+                    tryProcessSummary(result);
                 }
             });
         },
@@ -1695,10 +1709,17 @@ var glimpseAjaxPlugin = (function ($, glimpse) {
             }
             
             //Prepend results as we go 
+            var panelBody = panel.find('tbody');
             for (var x = result.length; --x >= resultCount;) {
                 var item = result[x];
-                panel.find('tbody').prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td><a href="#" class="glimpse-ajax-link" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
+                panelBody.prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td><a href="#" class="glimpse-ajax-link" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
             }
+            
+            resultCount = result.length; 
+        }, 
+        tryProcessSummary = function (result) {
+            if (resultCount != result.length)
+                processSummary(result);
         },
         
         clear = function () {
@@ -1710,7 +1731,7 @@ var glimpseAjaxPlugin = (function ($, glimpse) {
             panel.find('.glimpse-head-message').fadeOut();
             panel.find('.selected').removeClass('selected');
              
-            glimpse.data.update(currentData);
+            glimpse.data.retrieve(currentId);
         },
         
         selected = function (item) {
@@ -1722,9 +1743,7 @@ var glimpseAjaxPlugin = (function ($, glimpse) {
         },
         request = function (requestId) { 
             glimpse.data.retrieve(requestId, {
-                success : function (requestId, data, current) {
-                    process(requestId);
-                }
+                success : function (requestId) { process(requestId); }
             });
         },
         process = function (requestId) {
@@ -1750,14 +1769,12 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
 /*(im port:glimpse.History.spy.js|2)*/ 
     
     var //Support
-        isActive = false, 
-        resultCount = 0,
-        notice = undefined,
+        isActive = false,  
+        notice = undefined, 
         currentData = undefined,
         wireListener = function () {  
             glimpse.pubsub.subscribe('data.elements.processed', wireDomListeners); 
-            glimpse.pubsub.subscribe('state.build.prerender', setupData); 
-            glimpse.pubsub.subscribe('action.plugin.created', function (topic, payload) { if (payload == 'History') { setup(); } });
+            glimpse.pubsub.subscribe('action.data.applied', setupData);  
             glimpse.pubsub.subscribe('action.plugin.deactive', function (topic, payload) { if (payload == 'History') { deactive(); } }); 
             glimpse.pubsub.subscribe('action.plugin.active', function (topic, payload) {  if (payload == 'History') { active(); } }); 
         },
@@ -1766,27 +1783,23 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
             
             var panel = glimpse.elements.findPanel('History');
             panel.find('.glimpse-col-main tbody a').live('click', function () { selected($(this)); return false; });
-            panel.find('.glimpse-col-side tbody a').live('click', function () { selectedSession($(this)); return false; });
-            panel.find('.glimpse-col-side .glimpse-head-message a').live('click', function() { reset(); return false; });
+            panel.find('.glimpse-col-side tbody a').live('click', function () { selectedSession($(this).attr('data-clientName')); return false; });
+            panel.find('.glimpse-col-main .glimpse-head-message a').live('click', function() { reset(); return false; });
         },
         setupData = function () {
             var payload = glimpse.data.current(),
                 metadata = glimpse.data.currentMetadata().plugins;
                  
             payload.data.History = { name: 'History', data: 'No requests currently detected...', isPermanent : true };
-            metadata.History = { helpUrl: 'http://getglimpse.com/Help/Plugin/Remote' }; 
+            metadata.History = { helpUrl: 'http://getglimpse.com/Help/Plugin/Remote' };  
         },
-        
-        setup = function () {
-            var panel = glimpse.elements.findPanel('History'); 
-            panel.html('<div class="glimpse-col-main"></div><div class="glimpse-col-side"></div>');
-        },
+         
         active = function () {
             isActive = true;
             glimpse.elements.options.html('<div class="glimpse-notice gdisconnect"><div class="icon"></div><span>Disconnected...</span></div>');
             notice = new glimpse.objects.ConnectionNotice(glimpse.elements.options.find('.glimpse-notice')); 
             
-            //retreieveSummary(); 
+            retreieveSummary(); 
         },
         deactive = function () {
             isActive = false; 
@@ -1794,15 +1807,13 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
             notice = null;
         }, 
         
-        /*
         retreieveSummary = function () { 
             if (!isActive) { return; }
 
             //Poll for updated summary data
             notice.prePoll(); 
-            $.History({
-                url: glimpsePath + 'History',
-                data: { 'glimpseId' : currentData.requestId },
+            $.ajax({
+                url: glimpsePath + 'History', 
                 type: 'GET',
                 contentType: 'application/json',
                 complete : function(jqXHR, textStatus) {
@@ -1812,67 +1823,136 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
                 },
                 success: function (result) {
                     if (!isActive) { return; } 
-                    if (resultCount != result.length)
-                        processSummary(result);
-                    resultCount = result.length; 
+                    processSummary(result);
                 }
             });
         },
         processSummary = function (result) { 
-            var panel = glimpse.elements.findPanel('History');
+            var panel = glimpse.elements.findPanel('History'),
+                didAutoSelect = false;
+            
+            //Store the current result
+            currentData = result;
             
             //Insert container table
-            if (panel.find('table').length == 0) {
-                var data = [['Request URL', 'Method', 'Duration', 'Date/Time', 'View']],
-                    metadata = [[ { data : 0, key : true, width : '40%' }, { data : 1 }, { data : 2, width : '10%' },  { data : 3, width : '20%' },  { data : 4, width : '100px' } ]];
-                panel.html(glimpse.render.build(data, metadata)).find('table').append('<tbody></tbody>');
-                panel.find('thead').append('<tr class="glimpse-head-message" style="display:none"><td colspan="6"><a href="#">Reset context back to starting page</a></td></tr>');
+            if (panel.find('table').length == 0) 
+                renderLayout(panel);
+            
+            //Prepend results as we go  
+            var summary = panel.find('.glimpse-col-side');
+            for (var recordName in result) {
+                var summaryBody = summary.find('tbody'),
+                    summaryRow = summaryBody.find('a[data-clientName="' + recordName + '"]').parents('tr:first'),
+                    rowCount = summaryBody.find('tr').length;
+
+                if (summaryRow.length == 0)
+                    summaryRow = $('<tr class="' + (rowCount % 2 == 0 ? 'even' : 'odd') + '" data><td>' + recordName + '</td><td class="glimpse-history-count">1</td><td><a href="#" class="glimpse-Client-link" data-clientName="' + recordName + '">Inspect</a></td></tr>').prependTo(summaryBody);
+                
+                summaryRow.find('.glimpse-history-count').text(result[recordName].length);
+                
+                if (rowCount == 0) {
+                    didAutoSelect = true;
+                    selectedSession(recordName);
+                }
+            }  
+
+            if (!didAutoSelect)
+                tryProcessSession(result);
+        },
+        
+        renderLayout = function (panel) {
+            panel.html('<div class="glimpse-col-main"></div><div class="glimpse-col-side"></div>');
+            
+            var main = panel.find('.glimpse-col-main'),
+                summary = panel.find('.glimpse-col-side'),
+                summaryData = [['Client', 'Count', 'View']],
+                mainData = [['Request URL', 'Method', 'Duration', 'Date/Time', 'Is Ajax', 'View']],
+                mainMetadata = [[ { data : 0, key : true, width : '30%' }, { data : 1 }, { data : 2, width : '10%' }, { data : 3, width : '20%' }, { data : 4, width : '10%' }, { data : 5, width : '100px' } ]];
+                
+            main.html(glimpse.render.build(mainData, mainMetadata)).find('table').append('<tbody></tbody>');
+            main.find('thead').append('<tr class="glimpse-head-message" style="display:none"><td colspan="6"><a href="#">Reset context back to starting page</a></td></tr>');
+                
+            summary.html(glimpse.render.build(summaryData)).find('table').append('<tbody></tbody>'); 
+        },
+        
+        
+        
+        
+        selectedSession = function (clientName) {
+            var panel = glimpse.elements.findPanel('History'),
+                item = panel.find('a[data-clientName="' + clientName + '"]'), 
+                clientData = currentData[clientName];
+            
+            panel.find('.selected').removeClass('selected'); 
+            item.parents('tr:first').addClass('selected');
+            
+            processSession(clientName, clientData);
+        },
+        processSession = function (clientName, clientData) {
+            var panel = glimpse.elements.findPanel('History'),
+                mainBody = panel.find('.glimpse-col-main tbody');
+            
+            if (context.clientName != clientName) {
+                context.resultCount = 0;
+                mainBody.empty();
             }
             
-            //Prepend results as we go 
-            for (var x = result.length; --x >= resultCount;) {
-                var item = result[x];
-                panel.find('tbody').prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td><a href="#" class="glimpse-History-link" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
+            for (var x = clientData.length; --x >= context.resultCount;) {
+                var item = clientData[x];
+                mainBody.prepend('<tr class="' + (x % 2 == 0 ? 'even' : 'odd') + '"><td>' + item.url + '</td><td>' + item.method + '</td><td>' + item.duration + '<span class="glimpse-soft"> ms</span></td><td>' + item.requestTime + '</td><td>' + item.isAjax + '</td><td><a href="#" class="glimpse-history-link" data-glimpseId="' + item.requestId + '">Inspect</a></td></tr>');
             }
+            context.resultCount = clientData.length;
+            context.clientName = clientName;
+        },
+        tryProcessSession = function (result) {
+            var clientData = result[context.clientName];
+
+            if (clientData && context.resultCount != result.length) 
+                processSession(context.clientName, clientData); 
         },
         
-        clear = function () {
-            glimpse.elements.findPanel('History').html('<div class="glimpse-panel-message">No requests currently detected...</div>'); 
-        },
         
-        reset = function () {
-            var panel = glimpse.elements.findPanel('History');
-            panel.find('.glimpse-head-message').fadeOut();
-            panel.find('.selected').removeClass('selected');
-             
-            glimpse.data.update(currentData);
-        },
+        context = { resultCount : 0, clientName : '', requestId : '' },
+        
+        
         
         selected = function (item) {
             var requestId = item.attr('data-glimpseId');
 
-            item.hide().parent().append('<div class="loading glimpse-History-loading" data-glimpseId="' + requestId + '"><div class="icon"></div>Loading...</div>');
+            item.hide().parent().append('<div class="loading glimpse-history-loading" data-glimpseId="' + requestId + '"><div class="icon"></div>Loading...</div>');
 
             request(requestId);
         },
         request = function (requestId) { 
             glimpse.data.retrieve(requestId, {
-                success : function (requestId, data, current) {
+                success : function () {
                     process(requestId);
                 }
             });
-        },
+        }, 
         process = function (requestId) {
             var panel = glimpse.elements.findPanel('History'),
-                loading = panel.find('.glimpse-History-loading[data-glimpseId="' + requestId + '"]'),
-                link = panel.find('.glimpse-History-link[data-glimpseId="' + requestId + '"]');
+                main = panel.find('.glimpse-col-main'), 
+                loading = panel.find('.glimpse-history-loading[data-glimpseId="' + requestId + '"]'),
+                link = panel.find('.glimpse-history-link[data-glimpseId="' + requestId + '"]');
+            
+            context.requestId = requestId;
 
-            panel.find('.glimpse-head-message').fadeIn();
-            panel.find('.selected').removeClass('selected'); 
+            main.find('.glimpse-head-message').fadeIn();
+            main.find('.selected').removeClass('selected'); 
             loading.fadeOut(100).delay(100).remove(); 
             link.delay(100).fadeIn().parents('tr:first').addClass('selected');
         },
-        */
+        
+        reset = function () {
+            var panel = glimpse.elements.findPanel('History'),
+                main = panel.find('.glimpse-col-main');
+
+            main.find('.glimpse-head-message').fadeOut();
+            main.find('.selected').removeClass('selected');
+             
+            glimpse.data.reset();
+        }, 
 
         //Main 
         init = function () {
@@ -1880,4 +1960,673 @@ var glimpseHistoryPlugin = (function ($, glimpse) {
         };
 
     init();
+}($Glimpse, glimpse));
+var glimpseTimelinePlugin = (function ($, glimpse) {
+
+        var glimpseTimeline = function (scope, settings) { 
+        var elements = {},
+            findElements = function () {
+                //Main elements
+                elements.contentRow = scope.find('.glimpse-tl-row-content');
+                elements.summaryRow = scope.find('.glimpse-tl-row-summary');
+    
+                //Event elements
+                elements.contentBandScroller = elements.contentRow.find('.glimpse-tl-content-scroll');
+                elements.contentBandHolder = elements.contentRow.find('.glimpse-tl-band-group');
+                elements.contentEventHolder = elements.contentRow.find('.glimpse-tl-event-group');
+                elements.contentDescHolder = elements.contentRow.find('.glimpse-tl-event-desc-group');
+                elements.contentTableHolder = elements.contentRow.find('.glimpse-tl-table-holder');
+    
+                elements.summaryBandHolder = elements.summaryRow.find('.glimpse-tl-band-group');
+                elements.summaryEventHolder = elements.summaryRow.find('.glimpse-tl-event-group'); 
+                elements.summaryDescHolder = elements.summaryRow.find('.glimpse-tl-event-desc-group');
+    
+                //Event info element 
+                elements.eventInfo = scope.find('.glimpse-tl-event-info');
+                 
+                //Zoom elements
+                elements.zoomHolder = elements.summaryRow.find('.glimpse-tl-resizer-holder');
+                elements.zoomLeftHandle = elements.summaryRow.find('.glimpse-tl-resizer:first-child');
+                elements.zoomRightHandle = elements.summaryRow.find('.glimpse-tl-resizer:last-child');
+                elements.zoomLeftPadding = elements.summaryRow.find('.glimpse-tl-padding:first-child');
+                elements.zoomRightPadding = elements.summaryRow.find('.glimpse-tl-padding:last-child');
+    
+                //Divider elements
+                elements.contentDividerHolder = elements.contentRow.find('.glimpse-tl-divider-line-holder');
+                elements.summaryDividerHolder = elements.summaryRow.find('.glimpse-tl-divider-line-holder');
+            },
+            builder = function () {
+                var init = function() {
+                    scope.html('<div class="glimpse-timeline"><div class="glimpse-tl-row-summary"><div class="glimpse-tl-content-scroll"><div class="glimpse-tl-event-desc-holder glimpse-tl-col-side"><div class="glimpse-tl-band glimpse-tl-band-title">Categories<span>[Switch view]</span></div><div class="glimpse-tl-event-desc-group"></div></div><div class="glimpse-tl-band-holder glimpse-tl-col-main"><div class="glimpse-tl-band glimpse-tl-band-title"></div><div class="glimpse-tl-band-group"></div></div><div class="glimpse-tl-event-holder glimpse-tl-col-main"><div class="glimpse-tl-band glimpse-tl-band-title"></div><div class="glimpse-tl-event-group"></div></div></div><div class="glimpse-tl-padding-holder glimpse-tl-col-main"><div class="glimpse-tl-padding glimpse-tl-padding-l glimpse-tl-summary-height"></div><div class="glimpse-tl-padding glimpse-tl-padding-r glimpse-tl-summary-height"></div></div><div class="glimpse-tl-divider-holder glimpse-tl-col-main"><div class="glimpse-tl-divider-title-bar"></div><div class="glimpse-tl-divider-line-holder"></div></div><div class="glimpse-tl-resizer-holder glimpse-tl-col-main"><div class="glimpse-tl-resizer glimpse-tl-resizer-l glimpse-tl-summary-height"><div class="glimpse-tl-resizer-bar"></div><div class="glimpse-tl-resizer-handle"></div></div><div class="glimpse-tl-resizer glimpse-tl-resizer-r glimpse-tl-summary-height"><div class="glimpse-tl-resizer-bar"></div><div class="glimpse-tl-resizer-handle"></div></div></div></div><div class="glimpse-tl-row-spacer"></div><div class="glimpse-tl-row-content"><div class="glimpse-tl-content-scroll"><div class="glimpse-tl-band-holder glimpse-tl-col-main"><div class="glimpse-tl-band glimpse-tl-band-title"></div><div class="glimpse-tl-band-group"></div></div><div class="glimpse-tl-divider-holder glimpse-tl-col-main"><div class="glimpse-tl-divider-zero-holder"><div class="glimpse-tl-divider"></div></div><div class="glimpse-tl-divider-line-holder"></div></div><div class="glimpse-tl-event-holder glimpse-tl-col-main"><div class="glimpse-tl-event-holder-inner"><div class="glimpse-tl-band glimpse-tl-band-title"></div><div class="glimpse-tl-event-group"></div></div></div><div class="glimpse-tl-event-desc-holder glimpse-tl-col-side"><div class="glimpse-tl-band glimpse-tl-band-title">Events</div><div class="glimpse-tl-event-desc-group"></div></div></div><div class="glimpse-tl-content-overlay"><div class="glimpse-tl-divider-holder glimpse-tl-col-main"><div class="glimpse-tl-divider-title-bar"></div><div class="glimpse-tl-divider-zero-holder"><div class="glimpse-tl-divider"><div>0</div></div></div><div class="glimpse-tl-divider-line-holder"></div></div></div><div class="glimpse-tl-resizer"><div></div></div><div class="glimpse-tl-content-scroll" style="display:none"><div class="glimpse-tl-table-holder"></div></div></div><div class="glimpse-tl-event-info"></div></div>');
+                };
+    
+                return {
+                    init : init
+                };
+            }(),
+            dividerBuilder = function () {
+                var render = function (force) {   
+                        //Setup the dividers
+                        renderDiverders(elements.summaryDividerHolder, { startTime : 0, endTime : settings.duration}, force);
+                        renderDiverders(elements.contentDividerHolder, { startTime : settings.startTime, endTime : settings.endTime }, force);
+    
+                        //Fix height
+                        adjustHeight();
+                    },
+                    renderDiverders = function (scope, range, force) { 
+                        var x;
+                        for (x = 0; x < scope.length; x += 1) {
+                            var holder = $(scope[x]),
+                                dividerCount = Math.round(holder.width() / 64),
+                                currentDividerCount = holder.find('.glimpse-tl-divider').length;
+    
+                            if (!force && currentDividerCount === dividerCount) { return; }
+    
+                            var leftOffset = 100 / dividerCount,
+                                timeSlice = Math.round((range.endTime - range.startTime) / dividerCount),
+                                divider = holder.find('.glimpse-tl-divider:first-child');
+    
+                            for (var i = 0; i < dividerCount; i += 1) {
+                                //Create divider if needed 
+                                if (divider.length == 0) {
+                                    divider = $('<div class="glimpse-tl-divider"><div></div></div>');
+                                    holder.append(divider);
+                                }
+                                //Position divider
+                                divider.css('left', (leftOffset * (i + 1)) + '%');
+                                //Set label of divider
+                                var time = i == (dividerCount - 1) ? range.endTime : (timeSlice * (i + 1)) + range.startTime; 
+                                divider.find('div').text(glimpse.util.timeConvert(parseInt(time)));
+                                //Move onto next
+                                divider = divider.next();
+                            }
+    
+                            while (divider.length == 1) {
+                                var nextDivider = divider.next();
+                                divider.remove();
+                                divider = nextDivider;
+                            }
+                        }
+                    },
+                    adjustHeight = function () { 
+                        //Content row divider height
+                        var innerHeight = Math.max(elements.contentBandScroller.height(), elements.contentBandScroller.find('.glimpse-tl-band-holder').height());   
+                        elements.contentBandScroller.find('.glimpse-tl-divider-holder').height(innerHeight); 
+    
+                        //Summary row divider height
+                        elements.summaryRow.find('.glimpse-tl-summary-height').height(elements.summaryRow.height());
+                    },
+                    wireEvents = function () {  
+                        //Window resize event 
+                        $(window).resize(function () { render(); }); 
+                    },
+                    init = function () {
+                        wireEvents();
+                    };
+                     
+                return {
+                    init : init,
+                    render : render,
+                    adjustHeight : adjustHeight
+                }; 
+            }(),
+            eventBuilder = function () { 
+                var render = function () {
+                        processCategories();
+                        processEvents();
+                        processEventSummary();
+                        processTableData();
+                        //colorRows(true);
+                        view.start();
+                    },
+                    processTableData = function () {
+                        var dataResult = [ [ 'Title', 'Description', 'Category', 'Timing', 'Start Point', 'Duration', 'w/out Children' ] ],
+                            metadata = [ [ { data : '{{0}} |({{1}})|' }, { data : 2, width : '18%' }, { data : 3, width : '9%' }, { data : 4, align : 'right', pre : 'T+ ', post : ' ms', className : 'mono', width : '100px' }, { data : 5, align : 'right', post : ' ms', className : 'mono', width : '100px' }, { data : 6, align : 'right', post : ' ms', className : 'mono', width : '100px' } ] ];
+                        
+                        //Massage the data 
+                        for (var i = 0; i < settings.events.length; i++) {
+                            var event = settings.events[i],
+                                data = [ event.title, event.subText, event.category, '', event.startPoint, event.duration, event.childlessDuration ];
+                            dataResult.push(data);
+                        } 
+    
+                        //Insert it into the document
+                        var result = glimpse.render.build(dataResult, metadata); 
+                        elements.contentTableHolder.append(result);
+    
+                        //Update the output 
+                        elements.contentTableHolder.find('tbody tr').each(function(i) {
+                            var row = $(this),
+                                event = settings.events[i],  
+                                category = settings.category[event.category];
+                                 
+                            row.find('td:first-child').prepend($('<div class="glimpse-tl-event"></div>').css({ 'backgroundColor' : category.eventColor, marginLeft : (15 * event.nesting) + 'px', 'border' : '1px solid ' + category.eventColorHighlight }));
+                            row.find('td:nth-child(3)').css('position', 'relative').prepend($('<div class="glimpse-tl-event"></div>').css({ 'backgroundColor' : category.eventColor, 'border' : '1px solid ' + category.eventColorHighlight, 'margin-left' : event.startPersent + '%', width : event.widthPersent + '%' })); 
+                        }); 
+                    },
+                    processCategories = function () {
+                        for (var categoryName in settings.category) {
+                            var category = settings.category[categoryName];
+    
+                            elements.summaryDescHolder.append('<div class="glimpse-tl-band glimpse-tl-category-selected"><input type="checkbox" value="' + categoryName +'" checked="checked" /><div class="glimpse-tl-event" style="background-color:' + category.eventColor + ';border:1px solid ' + category.eventColorHighlight + '"></div>' + categoryName +'</div>'); 
+                            elements.summaryBandHolder.append('<div class="glimpse-tl-band"></div>');
+                            category.holder = $('<div class="glimpse-tl-band"></div>').appendTo(elements.summaryEventHolder); 
+                            category.events = {};
+                        }
+                    },
+                    processEvents = function () { 
+                        var eventStack = [], lastEvent = { startPoint : 0, duration : 0, childlessDuration : 0 };
+                        for (var i = 0; i < settings.events.length; i += 1) {
+                            var event = settings.events[i],
+                                topEvent = eventStack.length > 0 ? eventStack[eventStack.length - 1] : undefined,
+                                category = settings.category[event.category],
+                                left = (event.startPoint / settings.duration) * 100,
+                                rLeft = Math.round(left),
+                                width = (event.duration / settings.duration) * 100,
+                                rWidth = Math.round(width),
+                                widthStyle = (width > 0 ? 'width:' + width + '%' : ''),
+                                maxStyle = (width <= 0 ? 'max-width:7px;' : ''),
+                                subTextPre = (event.subText ? '(' + event.subText + ')' : ''),
+                                subText = (subTextPre ? '<span class="glimpse-tl-event-desc-sub">' + subTextPre + '</span>' : ''),
+                                stackParsed = false;
+                                 
+                            //Derive event nesting  
+                            while (!stackParsed) {
+                                if (event.startPoint > lastEvent.startPoint && (event.startPoint + event.duration) <= (lastEvent.startPoint + lastEvent.duration)) {
+                                    eventStack.push(lastEvent); 
+                                    stackParsed = true;
+                                }
+                                else if (topEvent != undefined && (topEvent.startPoint + topEvent.duration) < (event.startPoint + event.duration)) {
+                                    eventStack.pop(); 
+                                    topEvent = eventStack.length > 0 ? eventStack[eventStack.length - 1] : undefined; 
+                                    stackParsed = false;
+                                }
+                                else
+                                    stackParsed = true;
+                            }
+                            
+                            //Work out childless timings 
+                            var temp = eventStack.length > 0 ? eventStack[eventStack.length - 1] : undefined; 
+                            if (temp) { temp.childlessDuration -= event.duration; } 
+    
+                            //Save calc data
+                            event.childlessDuration = event.duration;
+                            event.startPersent = left;
+                            event.endPersent = left + width;
+                            event.widthPersent = width;
+                            event.nesting = eventStack.length;
+    
+                            //Build up the event decoration
+                            var eventDecoration = '';
+                            if (width >= 0)
+                                eventDecoration = '<div class="glimpse-tl-event-overlay-lh"><div class="glimpse-tl-event-overlay-li"></div><div class="glimpse-tl-event-overlay-lt">' + event.startPoint + 'ms</div></div>';
+                            if (width > 0)
+                                eventDecoration += '<div class="glimpse-tl-event-overlay-rh"><div class="glimpse-tl-event-overlay-ri"></div><div class="glimpse-tl-event-overlay-rt">' + (event.startPoint + event.duration) + 'ms</div></div><div class="glimpse-tl-event-overlay-c">' + (width < 3.5 ? '...' : (event.duration + 'ms')) + '</div>';
+                            eventDecoration = '<div class="glimpse-tl-event-overlay" style="left:' + left + '%;' + widthStyle + maxStyle + '" data-timelineItemIndex="' + i + '">' + eventDecoration + '</div>';
+    
+                            //Add main event HTML to DOM
+                            elements.contentBandHolder.append('<div class="glimpse-tl-band"></div>');
+                            elements.contentEventHolder.append('<div class="glimpse-tl-band"><div class="glimpse-tl-event" style="background-color:' + category.eventColor + ';border:1px solid ' + category.eventColorHighlight + ';left:' + left + '%;' + widthStyle + maxStyle + '"></div>'+ eventDecoration +'</div>');
+                            elements.contentDescHolder.append('<div class="glimpse-tl-band" title="' + event.title + ' ' + subTextPre + '"><div class="glimpse-tl-event" style="background-color:' + category.eventColor + ';border:1px solid ' + category.eventColorHighlight + '"></div>' + event.title + subText +'</div>');
+                         
+                            //Register events for summary  
+                            deriveEventSummary(category, left, rLeft, width, rWidth);
+                            
+                            lastEvent = event;
+                        }
+                    },
+                    deriveEventSummary = function (category, left, rLeft, width, rWidth) {
+                        for (var j = rLeft; j <= (rLeft + rWidth); ++j) { 
+                            var data = category.events[j], right = left + width;
+                            if (data) {
+                                data.left = Math.min(left, data.left);
+                                data.right = Math.max(right, data.right);
+                            }
+                            else 
+                                category.events[j] = { left : left, right : right } 
+                        } 
+                    },
+                    processEventSummary = function () { 
+                        var addCategoryEvent = function (category, start, finish) {
+                            var width = (finish - start), 
+                                widthStyle = (width > 0 ? 'width:' + width + '%' : ''),
+                                maxStyle = (width <= 0 ? 'max-width:7px;' : ''); 
+                            category.holder.append('<div class="glimpse-tl-event" style="background-color:' + category.eventColor + ';border:1px solid ' + category.eventColorHighlight + '; left:' + start + '%;' + widthStyle + maxStyle + '"></div>');
+                        };
+    
+                        for (var categoryName in settings.category) {
+                            var category = settings.category[categoryName], 
+                                events = category.events, 
+                                startData = null, 
+                                next = 0; 
+    
+                            for (var currentPoint in events) { 
+                                var current = parseInt(currentPoint);
+    
+                                if (!startData) {  //TODO: this needs to be cleanned up, duplicate logic here
+                                    startData = events[currentPoint]; 
+                                    next = current + 1; 
+                                }
+                                else if (current != next) {  
+                                    addCategoryEvent(category, startData.left, events[next - 1].right); 
+                                    startData = events[currentPoint]; 
+                                    next = current + 1; 
+                                }
+                                else 
+                                    next++; 
+                            }
+                            if (startData) { addCategoryEvent(category, startData.left, events[next - 1].right); } 
+                        }
+                    },
+                    colorRows = function (applyAll) { 
+                        var filter = applyAll ? '' : ':visible';
+                        colorElement(elements.contentBandHolder.find('> div'), filter);
+                        colorElement(elements.contentDescHolder.find('> div'), filter);
+                        colorElement(elements.summaryBandHolder.find('> div'), filter);
+                        colorElement(elements.summaryDescHolder.find('> div'), filter);
+                        colorElement(elements.contentTableHolder.find('tbody'), filter); 
+                    },
+                    colorElement = function (scope, filter) {
+                        scope.removeClass('odd').removeClass('even');
+                        scope.filter(filter + ':even').addClass('even');
+                        scope.filter(filter + ':odd').addClass('odd');
+                    },
+                    categoryEvents = function (item) {
+                        //Handel how the UI will look
+                        var isChecked = item[0].checked, parent = item.parent();
+                        parent.animate({ 'opacity' : (isChecked ? 0.95 : 0.6) }, 200);
+                        elements.summaryEventHolder.find('.glimpse-tl-band').eq(parent.index()).animate({ 'opacity' : (isChecked ? 1 : 0.7) }, 200)
+    
+                        //Trigger search
+                        filter.category()
+                    },
+                    _wireEvents = function () {
+                        elements.summaryDescHolder.find('input').live('click', function() {
+                            categoryEvents($(this));
+                        });
+                        elements.summaryDescHolder.find('.glimpse-tl-band')
+                            .live('mouseenter', function () { if ($(this).has('input:checked').length > 0) { $(this).find('input').stop(true, true).clearQueue().fadeIn(); } })
+                            .live('mouseleave', function () { if ($(this).has('input:checked').length > 0) { $(this).find('input').stop(true, true).clearQueue().fadeOut(); } });
+                        elements.summaryDescHolder.find('input').click(function() { filter.category(); });
+                    },
+                    init = function () { 
+                        _wireEvents();
+                    };
+                     
+                return {
+                    init : init,
+                    colorRows : colorRows,
+                    render : render
+                };
+            }(),          
+            zoom = function () {
+                var positionLeft = function () {
+                        var persentLeft = (elements.zoomLeftHandle.position().left / elements.zoomHolder.width()) * 100, 
+                            persentRight = (elements.zoomRightPadding.width() / elements.zoomHolder.width()) * 100; 
+                     
+                        //Set left slider
+                        elements.zoomLeftHandle.css('left', persentLeft + '%'); 
+                        elements.zoomLeftPadding.css('width', persentLeft + '%');
+                    
+                        settings.startTime = settings.duration * (persentLeft / 100);
+    
+                        //Force render
+                        dividerBuilder.render(true);
+    
+                        //Zoom in on main line items 
+                        zoomEvents(persentLeft, persentRight);
+                     
+                        //Manage zero display
+                        toggleZeroLine(persentLeft == 0); 
+                     
+                        //Hide events that aren't needed
+                        filter.zoom(persentLeft, persentRight); 
+                    },
+                    positionRight = function () {
+                        var persentRight = ((elements.zoomHolder.width() - 4 - elements.zoomRightHandle.position().left) / elements.zoomHolder.width()) * 100, 
+                            persentLeft = (elements.zoomLeftPadding.width() / elements.zoomHolder.width()) * 100; 
+                     
+                        //Set right slider
+                        elements.zoomRightHandle.css('right', persentRight + '%'); 
+                        elements.zoomRightPadding.css('width', persentRight + '%');
+    
+                        settings.endTime = settings.duration - (settings.duration * (persentRight / 100));
+                    
+                        //Force render
+                        dividerBuilder.render(true);
+                    
+                        //Zoom in on main line items 
+                        zoomEvents(persentLeft, persentRight);
+                        
+                        //Hide events that aren't needed
+                        filter.zoom(persentLeft, persentRight);  
+                    },
+                    zoomEvents = function (persentLeft, persentRight) {
+                        var offset = (100 / (100 - persentLeft - persentRight)) * -1, 
+                            lOffset = offset * persentLeft, 
+                            rOffset = offset * persentRight;
+    
+                        elements.contentRow.find('.glimpse-tl-event-holder-inner').css({ left : lOffset + '%', right : rOffset + '%' });
+                    },
+                    toggleZeroLine = function (show) {
+                        elements.contentRow.find('.glimpse-tl-divider-zero-holder').toggle(show);  
+                        elements.contentRow.find('.glimpse-tl-divider-line-holder').css('left', (show ? '15' : '0') + 'px');
+                        elements.contentRow.find('.glimpse-tl-event-holder').css('marginLeft', (show ? '15' : '0') + 'px');
+                    }, 
+                    wireEvents = function () {   
+                        glimpse.util.resizer(elements.zoomLeftHandle, {
+                            min: function () { return 0; },
+                            max: function () { return (elements.zoomRightHandle.position().left - 20); },
+                            preDragCallback: function () { elements.zoomLeftHandle.css('left', (elements.zoomLeftHandle.position().left) + 'px'); },
+                            endDragCallback: function () { positionLeft(); }
+                        });
+                        glimpse.util.resizer(elements.zoomRightHandle, {
+                            min: function () { return 0; },
+                            max: function () { return (elements.zoomHolder.width() - elements.zoomLeftHandle.position().left) - 20; },
+                            preDragCallback: function () { elements.zoomRightHandle.css('right', (elements.zoomHolder.width() - elements.zoomRightHandle.position().left) + 'px'); },
+                            endDragCallback: function () { positionRight(); },
+                            valueStyle: 'right',
+                            offset: -1
+                        });
+                    },
+                    init = function () {
+                        wireEvents();
+                    };
+                     
+                return {
+                    init : init
+                };
+            }(),
+            filter = function () {
+                var criteria = { 
+                        persentLeft : 0, 
+                        persentRightFromLeft : 100, 
+                        hiddenCategories : undefined
+                    },
+                    search = function (c) {
+                        //Go through each event doing executing search
+                        for (var i = 0; i < settings.events.length; i += 1) {
+                            var event = settings.events[i],
+                                show = !(c.persentLeft > event.endPersent 
+                                        || c.persentRightFromLeft < event.startPersent)
+                                        && (c.hiddenCategories == undefined || c.hiddenCategories[event.category] == true);
+    
+                            //Timeline elements
+                            elements.contentBandHolder.find('.glimpse-tl-band').eq(i).toggle(show);
+                            elements.contentEventHolder.find('.glimpse-tl-band').eq(i).toggle(show);
+                            elements.contentDescHolder.find('.glimpse-tl-band').eq(i).toggle(show); 
+                            //Table elements
+                            elements.contentTableHolder.find('tbody').eq(i).toggle(show); 
+                        }
+    
+                        //Recolourize rows 
+                        eventBuilder.colorRows();
+    
+                        //Fix height
+                        dividerBuilder.adjustHeight();
+                    },
+                    zoom = function (persentLeft, persentRight) {
+                        //Pull out current search
+                        criteria.persentLeft = persentLeft;
+                        criteria.persentRightFromLeft = 100 - persentRight; 
+                        
+                        //Execute search
+                        search(criteria);
+                    },
+                    category = function () {
+                        //Pull out current search
+                        var hiddenCategoriesObj = {}, hiddenCategories = elements.summaryDescHolder.find('input:checked').map(function() { return $(this).val() }).get();
+                        for (var i = 0; i < hiddenCategories.length; i++)
+                            hiddenCategoriesObj[hiddenCategories[i]] = true;
+                        criteria.hiddenCategories = hiddenCategoriesObj;
+                        
+                        //Execute search
+                        search(criteria);
+                    },
+                    init = function () { 
+                    };
+                     
+                return {
+                    init : init,
+                    zoom : zoom,
+                    category : category
+                };
+            }(),
+            info = function () {
+                var showTip = function (item) {
+                        item.find('.glimpse-tl-event-overlay').stop(true, true).fadeIn(); 
+                    },
+                    hideTip = function (item) {
+                        item.find('.glimpse-tl-event-overlay').stop(true, true).fadeOut(); 
+                    },
+                    buildBubbleDetails = function(event, category) {
+                        var details = '', detailKey;
+                        for (detailKey in event.details) {
+                            details += '<tr><th>' + detailKey + '</th><td>' + event.details[detailKey] + '</td></tr>';
+                        }
+                        return '<table><tr><th colspan="2"><div class="glimpse-tl-event-info-title"><div class="glimpse-tl-event" style="background-color:' + category.eventColor + ';border:1px solid ' + category.eventColorHighlight + '"></div>' + event.title + ' - Details</div></th></tr><tr><th>Duration</th><td>' + event.duration + 'ms (at ' + event.startPoint + 'ms' + ( + event.duration > 1 ? (' to ' + (event.startPoint + event.duration) + 'ms') : '' ) +')</td></tr>' + (event.duration != event.childlessDuration ? '<tr><th>w/out Children</th><td>' + event.childlessDuration + 'ms</td></tr>' : '') + (event.subText ? '<tr><th>Details</th><td>' + event.subText + '</td></tr>' : '' ) + details + '</table>';
+                    },
+                    updateBubble = function (item) {
+                        var eventOffset = item.offset(), 
+                            containerOffset = elements.eventInfo.parent().offset(),
+                            eventSize = { height : item.height(), width : item.width() },
+                            event = settings.events[item.attr('data-timelineItemIndex')],
+                            category = settings.category[event.category],
+                            content = buildBubbleDetails(event, category);
+                         
+                        eventOffset.top -= containerOffset.top;
+                        eventOffset.left -= containerOffset.left;
+    
+                        elements.eventInfo.html(content)
+                         
+                        var detailSize = { height : elements.eventInfo.height(), width : elements.eventInfo.width() }, 
+                            newDetailLeft = Math.min(Math.max((eventOffset.left + ((eventSize.width - detailSize.width) / 2)) - 15, 5), $(document).width() - detailSize.width - 30),
+                            newDetailTop = eventOffset.top - detailSize.height - 20; 
+                             
+                        elements.eventInfo.css('left', newDetailLeft + 'px');
+                        elements.eventInfo.css('top', newDetailTop + 'px');   
+                    },
+                    showBubble = function (item) {  
+                        elements.eventInfo.stop(true, true).clearQueue().delay(500).queue(function () { updateBubble(item); elements.eventInfo.show(); }); 
+                    },
+                    hideBubble = function () { 
+                        elements.eventInfo.stop(true, true).clearQueue().delay(500).fadeOut(); 
+                    },
+                    wireEvents = function () {
+                        elements.eventInfo
+                            .live('mouseenter', function () { elements.eventInfo.stop(true, true).clearQueue(); })
+                            .live('mouseleave', function () { hideBubble(); });
+    
+                        elements.contentRow.find('.glimpse-tl-event-overlay')
+                            .live('mouseenter', function () { showBubble($(this)); })
+                            .live('mouseleave', function () { hideBubble(); });
+    
+                        elements.contentEventHolder.find('.glimpse-tl-band')
+                            .live('mouseenter', function () { showTip($(this)); })
+                            .live('mouseleave', function () { hideTip($(this)); });
+                    },
+                    init = function () {
+                        wireEvents();
+                    };
+                     
+                return {
+                    init : init
+                };
+            }(),
+            resize = function () {
+                var columnResize = function (position) {
+                        scope.find('.glimpse-tl-col-side').width(position + 'px');
+                        scope.find('.glimpse-tl-col-main').css('left', position + 'px');
+                        
+                        dividerBuilder.render(false);
+                    },
+                    containerResize = function (height) { 
+                        //Work out what heihgt we can work with
+                        var contentHeight = height - (elements.summaryRow.height() + scope.find('.glimpse-tl-row-spacer').height());  
+                        elements.contentRow.height(contentHeight + 'px');
+                        
+                        //Render Divers
+                        dividerBuilder.render();
+                    },
+                    wireEvents = function () { 
+                        glimpse.util.resizer(elements.contentRow.find('.glimpse-tl-resizer'), {
+                            max: function () { return 300; },
+                            endDragCallback: function (position) { columnResize(position); }
+                        });
+                    },
+                    init = function () {
+                        wireEvents(); 
+                    };
+                     
+                return {
+                    containerResize : containerResize,
+                    init : init
+                };
+            }(),
+            view = function () {
+                var apply = function(showTimeline, isFirst) {
+                        elements.contentTableHolder.parent().toggle(!showTimeline); 
+                        elements.contentRow.find('.glimpse-tl-content-scroll:first-child').toggle(showTimeline);
+                        elements.contentRow.find('.glimpse-tl-resizer').toggle(showTimeline); 
+                        
+                        eventBuilder.colorRows(isFirst); 
+                        if (showTimeline) 
+                            dividerBuilder.render();
+                    },
+                    toggle = function() {
+                        var showTimeline = !(glimpse.settings.timeView);
+    
+                        apply(showTimeline);
+                     
+                        glimpse.settings.timeView = showTimeline;
+                        glimpse.pubsub.publish('state.persist');
+                    },
+                    start = function() {
+                        apply(glimpse.settings.timeView, true);
+                    },
+                    init = function() { 
+                        elements.summaryRow.find('.glimpse-tl-band-title span').click(function () {
+                            toggle(); 
+                        });
+                    };
+    
+                return { 
+                    toggle : toggle,
+                    start : start,
+                    init : init
+                };
+            } (),
+            init = function () { 
+                //Set defaults
+                settings.startTime = 0;
+                settings.endTime = settings.duration;
+                
+                //Render main layout
+                builder.init();
+    
+                //Find rendered elements 
+                findElements();
+    
+                //Wire events
+                dividerBuilder.init();
+                eventBuilder.init();
+                zoom.init();
+                filter.init();
+                info.init();
+                resize.init();
+                view.init();
+                 
+                //Render events 
+                eventBuilder.render();  
+            };
+    
+        return {  
+            init : init,
+            support : {
+                containerResize : resize.containerResize
+            }
+        };
+    }; 
+    
+    var //Support  
+        currentData = undefined,
+        currentTimeline = undefined, 
+        wireListener = function () {    
+            glimpse.pubsub.subscribe('action.data.applied', contextChanged);
+            glimpse.pubsub.subscribe('action.plugin.created', function (topic, payload) { if (payload == 'Timeline') { created(); } });
+            glimpse.pubsub.subscribe('action.plugin.active', function (topic, payload) { if (payload == 'Timeline') { resize(); } }); 
+            glimpse.pubsub.subscribe('action.resize', resize);
+            glimpse.pubsub.subscribe('state.build.template.modify', function(topic, payload) { modify(payload); }); 
+            
+        }, 
+          
+        created = function () { 
+            var panel = glimpse.elements.findPanel('Timeline'),
+                payload = glimpse.data.current().data;
+            
+            currentTimeline = glimpseTimeline(panel, currentData);
+            currentTimeline.init(); 
+
+            payload.Timeline.data = currentData;
+        },
+        resize = function () { 
+            if (currentTimeline)
+                setTimeout(function() { currentTimeline.support.containerResize(glimpse.settings.height - 54); }, 1);
+        }, 
+        contextChanged = function () {
+            var payload = glimpse.data.current().data;
+
+            if (payload.Timeline) {
+                currentData = payload.Timeline.data;
+                if (currentData)
+                    payload.Timeline.data = 'Generating timeline, please wait...';
+            }
+        },
+        modify = function (template) {
+            template.css += '.glimpse-panel .glimpse-tl-resizer {position: absolute;width: 4px;height: 100%;cursor: col-resize;}.glimpse-panel .glimpse-tl-row-summary {position: relative;height: 100px;}.glimpse-panel .glimpse-tl-row-summary .glimpse-tl-resizer-bar {background-color: #404040;width: 1px;height: 100%;margin-left: 2px;}.glimpse-panel .glimpse-tl-row-summary .glimpse-tl-resizer-handle {background-color: #404040;width: 5px;height: 20px;top: 0;position: absolute;-webkit-border-radius: 2px;-moz-border-radius: 2px;border-radius: 2px;}.glimpse-panel .glimpse-tl-row-spacer {background: #cfcfcf;background: -moz-linear-gradient(top, #cfcfcf 0%, #dddddd 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#cfcfcf), color-stop(100%,#dddddd));background: -webkit-linear-gradient(top, #cfcfcf 0%,#dddddd 100%);background: -o-linear-gradient(top, #cfcfcf 0%,#dddddd 100%);background: -ms-linear-gradient(top, #cfcfcf 0%,#dddddd 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=\'#cfcfcf\', endColorstr=\'#dddddd\',GradientType=0 );background: linear-gradient(top, #cfcfcf 0%,#dddddd 100%);-webkit-box-shadow: inset 0px 1px 0px 0px #E2E2E2;-moz-box-shadow: inset 0px 1px 0px 0px #E2E2E2;box-shadow: inset 0px 1px 0px 0px #E2E2E2;border-top: 1px solid #7A7A7A;border-bottom: 1px solid #7A7A7A;height: 5px;}.glimpse-panel .glimpse-tl-col-side {position: absolute;width: 200px;height: 100%;left: 0px;}.glimpse-panel .glimpse-tl-col-main {position: absolute;left: 200px;right: 0px;top: 0px;}.glimpse-panel .glimpse-tl-row-content .glimpse-tl-col-side {border-right: 1px solid #404040;}.glimpse-panel .glimpse-tl-row-content {position: relative;height: 400px;}.glimpse-panel .glimpse-tl-row-content .glimpse-tl-resizer {left: 200px;}.glimpse-panel .glimpse-tl-row-content .glimpse-tl-resizer div {background-color: #404040;width: 1px;height: 100%;}.glimpse-panel .glimpse-tl-band {padding-top: 2px;padding-bottom: 2px;}.glimpse-panel .glimpse-tl-col-side .glimpse-tl-band {padding-top: 2px;-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;padding-left: 5px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;}.glimpse-panel .glimpse-tl-band {position: relative;height: 18px;padding: 0px;}.glimpse-panel .glimpse-tl-col-main .glimpse-tl-event {position: absolute;top: 4px;margin-left: -2px;}.glimpse-panel .glimpse-tl-band-title {height: 20px !important;-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;font-weight: bold;padding-top: 4px;}.glimpse-panel .glimpse-tl-event {border-radius: 4px;width: 7px;height: 7px;display: inline-block;margin: 0 5px 0 2px;background: -moz-linear-gradient(top, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 70%, rgba(0,0,0,0.5) 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,0.7)), color-stop(40%,rgba(255,255,255,0)), color-stop(70%,rgba(255,255,255,0)), color-stop(100%,rgba(0,0,0,0.5)));background: -webkit-linear-gradient(top, rgba(255,255,255,0.7) 0%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 70%,rgba(0,0,0,0.5) 100%);background: -o-linear-gradient(top, rgba(255,255,255,0.7) 0%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 70%,rgba(0,0,0,0.5) 100%);background: -ms-linear-gradient(top, rgba(255,255,255,0.7) 0%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 70%,rgba(0,0,0,0.5) 100%);background: linear-gradient(top, rgba(255,255,255,0.7) 0%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 70%,rgba(0,0,0,0.5) 100%);}.glimpse-panel .glimpse-tl-col-main .glimpse-tl-event {width: 1%;min-width: 3px;}.glimpse-panel .glimpse-tl-event-info {position: absolute;top: 1px;padding: 0.75em;border: 1px solid rgba(0, 0, 0, 0.3);background-color: #FCF7BD;display: none;-webkit-border-radius: 15px;-moz-border-radius: 15px;border-radius: 15px;-webkit-box-shadow: 0px 0px 8px 0px #696969;-moz-box-shadow: 0px 0px 8px 0px #696969;box-shadow: 0px 0px 8px 0px #696969;}.glimpse-panel .glimpse-tl-event-info th {font-weight: bold;text-align: right;}.glimpse-panel .glimpse-tl-event-info .glimpse-tl-event-info-title {text-align: left;border-bottom: 1px solid rgba(0, 0, 0, 0.3);}.glimpse-panel .glimpse-tl-row-summary .glimpse-tl-event-holder {margin-left: 3px;}.glimpse-panel .glimpse-tl-row-content .glimpse-tl-event-holder {margin-left: 15px;}.glimpse-panel .glimpse-tl-event-holder-inner {position: absolute;left: 0px;right: 0px;margin-left: 4px;}.glimpse-panel .glimpse-tl-event-desc-sub {color: #AAA;font-size: 0.9em;margin-left: 5px;}.glimpse-panel .glimpse-tl-event-overlay {display: none;position: absolute;height: 18px;width: 7px;}.glimpse-panel .glimpse-tl-event-overlay-lh {position: absolute;left: 0;width: 1px;}.glimpse-panel .glimpse-tl-event-overlay-li {position: absolute;right: -2px;font-size: 0.8em;top: 7px;background: url() no-repeat -31px -17px;width: 11px;height: 3px;}.glimpse-panel .glimpse-tl-event-overlay-lt {position: absolute;right: 15px;font-size: 0.8em;top: 2px;color: rgba(0, 0, 0, 0.75);}.glimpse-panel .glimpse-tl-event-overlay-rh {position: absolute;right: 0;width: 1px;}.glimpse-panel .glimpse-tl-event-overlay-ri {position: absolute;left: -4px;font-size: 0.8em;top: 7px;background: url() no-repeat -44px -17px;width: 11px;height: 3px;}.glimpse-panel .glimpse-tl-event-overlay-rt {font-size: 0.8em;position: absolute;top: 2px;left: 11px;color: rgba(0, 0, 0, 0.75);}.glimpse-panel .glimpse-tl-event-overlay-c {font-size: 0.9em;text-align: center;padding-top: 1px;color: rgba(0, 0, 0, 0.75);font-weight: bold;}.glimpse-panel .glimpse-tl-content-scroll {overflow-y: scroll;overflow-x: hidden;width: 100%;position: absolute;height: 100%;}.glimpse-panel .glimpse-tl-padding-holder {right: 18px;}.glimpse-panel .glimpse-tl-padding {position: absolute;width: 0;top: 0;bottom: 0;background-color: rgba(0, 0, 0, 0.3);}.glimpse-panel .glimpse-tl-padding-l {left: 0;border-left: 1px solid #555;}.glimpse-panel .glimpse-tl-padding-r {right: 0;border-right: 1px solid #555;}.glimpse-panel .glimpse-tl-divider-line-holder {position: absolute;height: 100%;top: 0;right: 0;}.glimpse-panel .glimpse-tl-divider {position: absolute;width: 1px;top: 0;bottom: 0;background-color: rgba(0, 0, 0, 0.1);}.glimpse-panel .glimpse-tl-divider div {position: absolute;top: 4px;right: 5px;font-size: 9px;color: #323232;white-space: nowrap;}.glimpse-panel .glimpse-tl-divider-title-bar {width: 100%;background-color: rgba(255, 255, 255, 0.8);border-bottom: 1px solid rgba(0, 0, 0, 0.3);height: 20px;}.glimpse-panel .glimpse-tl-divider-zero-holder {position: absolute;height: 100%;top: 0;right: 0;left: 0;}.glimpse-panel .glimpse-tl-divider-zero-holder .glimpse-tl-divider {left: 15px;}.glimpse-panel .glimpse-tl-content-scroll .glimpse-tl-divider div {display: none;}.glimpse-panel .glimpse-tl-row-summary .glimpse-tl-divider-holder {right: 19px;height: 20px;}.glimpse-panel .glimpse-tl-row-content .glimpse-tl-content-scroll .glimpse-tl-divider-holder {right: -1px;margin-left: 1px;height: 100%;}.glimpse-panel .glimpse-tl-row-content .glimpse-tl-content-overlay .glimpse-tl-divider-holder {right: 16px;height: 20px;border-left: 1px solid #404040;}.glimpse-panel .glimpse-tl-row-summary .glimpse-tl-divider-line-holder {left: 0;}.glimpse-panel .glimpse-tl-row-content .glimpse-tl-divider-line-holder {left: 15px;}.glimpse-panel .glimpse-tl-resizer-holder {right: 17px;}.glimpse-panel .glimpse-tl-resizer-l {left: 0px;margin-left: -2px;}.glimpse-panel .glimpse-tl-resizer-r {right: 0px;}.glimpse-panel .glimpse-tl-col-side {background-color: #F2F5F7;}.glimpse-panel .glimpse-tl-col-side .odd, .glimpse-panel .glimpse-tl-col-side .odd > td {background-color: #F2F5F7;}.glimpse-panel .glimpse-tl-col-side .even, .glimpse-panel .glimpse-tl-col-side .even > td {background-color: #E1E7F0;}.glimpse-panel .glimpse-tl-row-summary .glimpse-tl-band-title {opacity: 0.9;}.glimpse-panel .glimpse-tl-row-summary .glimpse-tl-event-desc-group .glimpse-tl-band {opacity: 0.95;}.glimpse-panel .glimpse-tl-row-summary .glimpse-tl-event-desc-group input {margin-right: 5px;float: right;display: none;}.glimpse-panel .glimpse-tl-band-title span {font-weight: normal;font-size: 0.8em;margin-left: 1em;cursor: pointer;}';
+        },
+
+        //Main 
+        init = function () {
+            wireListener(); 
+        };
+
+    init();
+}($Glimpse, glimpse));
+
+if (!window.PR_SHOULD_USE_CONTINUATION) {
+var q=null;window.PR_SHOULD_USE_CONTINUATION=!0;
+(function(){function L(a){function m(a){var f=a.charCodeAt(0);if(f!==92)return f;var b=a.charAt(1);return(f=r[b])?f:"0"<=b&&b<="7"?parseInt(a.substring(1),8):b==="u"||b==="x"?parseInt(a.substring(2),16):a.charCodeAt(1)}function e(a){if(a<32)return(a<16?"\\x0":"\\x")+a.toString(16);a=String.fromCharCode(a);if(a==="\\"||a==="-"||a==="["||a==="]")a="\\"+a;return a}function h(a){for(var f=a.substring(1,a.length-1).match(/\\u[\dA-Fa-f]{4}|\\x[\dA-Fa-f]{2}|\\[0-3][0-7]{0,2}|\\[0-7]{1,2}|\\[\S\s]|[^\\]/g),a=
+[],b=[],o=f[0]==="^",c=o?1:0,i=f.length;c<i;++c){var j=f[c];if(/\\[bdsw]/i.test(j))a.push(j);else{var j=m(j),d;c+2<i&&"-"===f[c+1]?(d=m(f[c+2]),c+=2):d=j;b.push([j,d]);d<65||j>122||(d<65||j>90||b.push([Math.max(65,j)|32,Math.min(d,90)|32]),d<97||j>122||b.push([Math.max(97,j)&-33,Math.min(d,122)&-33]))}}b.sort(function(a,f){return a[0]-f[0]||f[1]-a[1]});f=[];j=[NaN,NaN];for(c=0;c<b.length;++c)i=b[c],i[0]<=j[1]+1?j[1]=Math.max(j[1],i[1]):f.push(j=i);b=["["];o&&b.push("^");b.push.apply(b,a);for(c=0;c<
+f.length;++c)i=f[c],b.push(e(i[0])),i[1]>i[0]&&(i[1]+1>i[0]&&b.push("-"),b.push(e(i[1])));b.push("]");return b.join("")}function y(a){for(var f=a.source.match(/\[(?:[^\\\]]|\\[\S\s])*]|\\u[\dA-Fa-f]{4}|\\x[\dA-Fa-f]{2}|\\\d+|\\[^\dux]|\(\?[!:=]|[()^]|[^()[\\^]+/g),b=f.length,d=[],c=0,i=0;c<b;++c){var j=f[c];j==="("?++i:"\\"===j.charAt(0)&&(j=+j.substring(1))&&j<=i&&(d[j]=-1)}for(c=1;c<d.length;++c)-1===d[c]&&(d[c]=++t);for(i=c=0;c<b;++c)j=f[c],j==="("?(++i,d[i]===void 0&&(f[c]="(?:")):"\\"===j.charAt(0)&&
+(j=+j.substring(1))&&j<=i&&(f[c]="\\"+d[i]);for(i=c=0;c<b;++c)"^"===f[c]&&"^"!==f[c+1]&&(f[c]="");if(a.ignoreCase&&s)for(c=0;c<b;++c)j=f[c],a=j.charAt(0),j.length>=2&&a==="["?f[c]=h(j):a!=="\\"&&(f[c]=j.replace(/[A-Za-z]/g,function(a){a=a.charCodeAt(0);return"["+String.fromCharCode(a&-33,a|32)+"]"}));return f.join("")}for(var t=0,s=!1,l=!1,p=0,d=a.length;p<d;++p){var g=a[p];if(g.ignoreCase)l=!0;else if(/[a-z]/i.test(g.source.replace(/\\u[\da-f]{4}|\\x[\da-f]{2}|\\[^UXux]/gi,""))){s=!0;l=!1;break}}for(var r=
+{b:8,t:9,n:10,v:11,f:12,r:13},n=[],p=0,d=a.length;p<d;++p){g=a[p];if(g.global||g.multiline)throw Error(""+g);n.push("(?:"+y(g)+")")}return RegExp(n.join("|"),l?"gi":"g")}function M(a){function m(a){switch(a.nodeType){case 1:if(e.test(a.className))break;for(var g=a.firstChild;g;g=g.nextSibling)m(g);g=a.nodeName;if("BR"===g||"LI"===g)h[s]="\n",t[s<<1]=y++,t[s++<<1|1]=a;break;case 3:case 4:g=a.nodeValue,g.length&&(g=p?g.replace(/\r\n?/g,"\n"):g.replace(/[\t\n\r ]+/g," "),h[s]=g,t[s<<1]=y,y+=g.length,
+t[s++<<1|1]=a)}}var e=/(?:^|\s)nocode(?:\s|$)/,h=[],y=0,t=[],s=0,l;a.currentStyle?l=a.currentStyle.whiteSpace:window.getComputedStyle&&(l=document.defaultView.getComputedStyle(a,q).getPropertyValue("white-space"));var p=l&&"pre"===l.substring(0,3);m(a);return{a:h.join("").replace(/\n$/,""),c:t}}function B(a,m,e,h){m&&(a={a:m,d:a},e(a),h.push.apply(h,a.e))}function x(a,m){function e(a){for(var l=a.d,p=[l,"pln"],d=0,g=a.a.match(y)||[],r={},n=0,z=g.length;n<z;++n){var f=g[n],b=r[f],o=void 0,c;if(typeof b===
+"string")c=!1;else{var i=h[f.charAt(0)];if(i)o=f.match(i[1]),b=i[0];else{for(c=0;c<t;++c)if(i=m[c],o=f.match(i[1])){b=i[0];break}o||(b="pln")}if((c=b.length>=5&&"lang-"===b.substring(0,5))&&!(o&&typeof o[1]==="string"))c=!1,b="src";c||(r[f]=b)}i=d;d+=f.length;if(c){c=o[1];var j=f.indexOf(c),k=j+c.length;o[2]&&(k=f.length-o[2].length,j=k-c.length);b=b.substring(5);B(l+i,f.substring(0,j),e,p);B(l+i+j,c,C(b,c),p);B(l+i+k,f.substring(k),e,p)}else p.push(l+i,b)}a.e=p}var h={},y;(function(){for(var e=a.concat(m),
+l=[],p={},d=0,g=e.length;d<g;++d){var r=e[d],n=r[3];if(n)for(var k=n.length;--k>=0;)h[n.charAt(k)]=r;r=r[1];n=""+r;p.hasOwnProperty(n)||(l.push(r),p[n]=q)}l.push(/[\S\s]/);y=L(l)})();var t=m.length;return e}function u(a){var m=[],e=[];a.tripleQuotedStrings?m.push(["str",/^(?:'''(?:[^'\\]|\\[\S\s]|''?(?=[^']))*(?:'''|$)|"""(?:[^"\\]|\\[\S\s]|""?(?=[^"]))*(?:"""|$)|'(?:[^'\\]|\\[\S\s])*(?:'|$)|"(?:[^"\\]|\\[\S\s])*(?:"|$))/,q,"'\""]):a.multiLineStrings?m.push(["str",/^(?:'(?:[^'\\]|\\[\S\s])*(?:'|$)|"(?:[^"\\]|\\[\S\s])*(?:"|$)|`(?:[^\\`]|\\[\S\s])*(?:`|$))/,
+q,"'\"`"]):m.push(["str",/^(?:'(?:[^\n\r'\\]|\\.)*(?:'|$)|"(?:[^\n\r"\\]|\\.)*(?:"|$))/,q,"\"'"]);a.verbatimStrings&&e.push(["str",/^@"(?:[^"]|"")*(?:"|$)/,q]);var h=a.hashComments;h&&(a.cStyleComments?(h>1?m.push(["com",/^#(?:##(?:[^#]|#(?!##))*(?:###|$)|.*)/,q,"#"]):m.push(["com",/^#(?:(?:define|elif|else|endif|error|ifdef|include|ifndef|line|pragma|undef|warning)\b|[^\n\r]*)/,q,"#"]),e.push(["str",/^<(?:(?:(?:\.\.\/)*|\/?)(?:[\w-]+(?:\/[\w-]+)+)?[\w-]+\.h|[a-z]\w*)>/,q])):m.push(["com",/^#[^\n\r]*/,
+q,"#"]));a.cStyleComments&&(e.push(["com",/^\/\/[^\n\r]*/,q]),e.push(["com",/^\/\*[\S\s]*?(?:\*\/|$)/,q]));a.regexLiterals&&e.push(["lang-regex",/^(?:^^\.?|[!+-]|!=|!==|#|%|%=|&|&&|&&=|&=|\(|\*|\*=|\+=|,|-=|->|\/|\/=|:|::|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|[?@[^]|\^=|\^\^|\^\^=|{|\||\|=|\|\||\|\|=|~|break|case|continue|delete|do|else|finally|instanceof|return|throw|try|typeof)\s*(\/(?=[^*/])(?:[^/[\\]|\\[\S\s]|\[(?:[^\\\]]|\\[\S\s])*(?:]|$))+\/)/]);(h=a.types)&&e.push(["typ",h]);a=(""+a.keywords).replace(/^ | $/g,
+"");a.length&&e.push(["kwd",RegExp("^(?:"+a.replace(/[\s,]+/g,"|")+")\\b"),q]);m.push(["pln",/^\s+/,q," \r\n\t\xa0"]);e.push(["lit",/^@[$_a-z][\w$@]*/i,q],["typ",/^(?:[@_]?[A-Z]+[a-z][\w$@]*|\w+_t\b)/,q],["pln",/^[$_a-z][\w$@]*/i,q],["lit",/^(?:0x[\da-f]+|(?:\d(?:_\d+)*\d*(?:\.\d*)?|\.\d\+)(?:e[+-]?\d+)?)[a-z]*/i,q,"0123456789"],["pln",/^\\[\S\s]?/,q],["pun",/^.[^\s\w"-$'./@\\`]*/,q]);return x(m,e)}function D(a,m){function e(a){switch(a.nodeType){case 1:if(k.test(a.className))break;if("BR"===a.nodeName)h(a),
+a.parentNode&&a.parentNode.removeChild(a);else for(a=a.firstChild;a;a=a.nextSibling)e(a);break;case 3:case 4:if(p){var b=a.nodeValue,d=b.match(t);if(d){var c=b.substring(0,d.index);a.nodeValue=c;(b=b.substring(d.index+d[0].length))&&a.parentNode.insertBefore(s.createTextNode(b),a.nextSibling);h(a);c||a.parentNode.removeChild(a)}}}}function h(a){function b(a,d){var e=d?a.cloneNode(!1):a,f=a.parentNode;if(f){var f=b(f,1),g=a.nextSibling;f.appendChild(e);for(var h=g;h;h=g)g=h.nextSibling,f.appendChild(h)}return e}
+for(;!a.nextSibling;)if(a=a.parentNode,!a)return;for(var a=b(a.nextSibling,0),e;(e=a.parentNode)&&e.nodeType===1;)a=e;d.push(a)}var k=/(?:^|\s)nocode(?:\s|$)/,t=/\r\n?|\n/,s=a.ownerDocument,l;a.currentStyle?l=a.currentStyle.whiteSpace:window.getComputedStyle&&(l=s.defaultView.getComputedStyle(a,q).getPropertyValue("white-space"));var p=l&&"pre"===l.substring(0,3);for(l=s.createElement("LI");a.firstChild;)l.appendChild(a.firstChild);for(var d=[l],g=0;g<d.length;++g)e(d[g]);m===(m|0)&&d[0].setAttribute("value",
+m);var r=s.createElement("OL");r.className="linenums";for(var n=Math.max(0,m-1|0)||0,g=0,z=d.length;g<z;++g)l=d[g],l.className="L"+(g+n)%10,l.firstChild||l.appendChild(s.createTextNode("\xa0")),r.appendChild(l);a.appendChild(r)}function k(a,m){for(var e=m.length;--e>=0;){var h=m[e];A.hasOwnProperty(h)?window.console&&console.warn("cannot override language handler %s",h):A[h]=a}}function C(a,m){if(!a||!A.hasOwnProperty(a))a=/^\s*</.test(m)?"default-markup":"default-code";return A[a]}function E(a){var m=
+a.g;try{var e=M(a.h),h=e.a;a.a=h;a.c=e.c;a.d=0;C(m,h)(a);var k=/\bMSIE\b/.test(navigator.userAgent),m=/\n/g,t=a.a,s=t.length,e=0,l=a.c,p=l.length,h=0,d=a.e,g=d.length,a=0;d[g]=s;var r,n;for(n=r=0;n<g;)d[n]!==d[n+2]?(d[r++]=d[n++],d[r++]=d[n++]):n+=2;g=r;for(n=r=0;n<g;){for(var z=d[n],f=d[n+1],b=n+2;b+2<=g&&d[b+1]===f;)b+=2;d[r++]=z;d[r++]=f;n=b}for(d.length=r;h<p;){var o=l[h+2]||s,c=d[a+2]||s,b=Math.min(o,c),i=l[h+1],j;if(i.nodeType!==1&&(j=t.substring(e,b))){k&&(j=j.replace(m,"\r"));i.nodeValue=
+j;var u=i.ownerDocument,v=u.createElement("SPAN");v.className=d[a+1];var x=i.parentNode;x.replaceChild(v,i);v.appendChild(i);e<o&&(l[h+1]=i=u.createTextNode(t.substring(b,o)),x.insertBefore(i,v.nextSibling))}e=b;e>=o&&(h+=2);e>=c&&(a+=2)}}catch(w){"console"in window&&console.log(w&&w.stack?w.stack:w)}}var v=["break,continue,do,else,for,if,return,while"],w=[[v,"auto,case,char,const,default,double,enum,extern,float,goto,int,long,register,short,signed,sizeof,static,struct,switch,typedef,union,unsigned,void,volatile"],
+"catch,class,delete,false,import,new,operator,private,protected,public,this,throw,true,try,typeof"],F=[w,"alignof,align_union,asm,axiom,bool,concept,concept_map,const_cast,constexpr,decltype,dynamic_cast,explicit,export,friend,inline,late_check,mutable,namespace,nullptr,reinterpret_cast,static_assert,static_cast,template,typeid,typename,using,virtual,where"],G=[w,"abstract,boolean,byte,extends,final,finally,implements,import,instanceof,null,native,package,strictfp,super,synchronized,throws,transient"],
+H=[G,"as,base,by,checked,decimal,delegate,descending,dynamic,event,fixed,foreach,from,group,implicit,in,interface,internal,into,is,lock,object,out,override,orderby,params,partial,readonly,ref,sbyte,sealed,stackalloc,string,select,uint,ulong,unchecked,unsafe,ushort,var"],w=[w,"debugger,eval,export,function,get,null,set,undefined,var,with,Infinity,NaN"],I=[v,"and,as,assert,class,def,del,elif,except,exec,finally,from,global,import,in,is,lambda,nonlocal,not,or,pass,print,raise,try,with,yield,False,True,None"],
+J=[v,"alias,and,begin,case,class,def,defined,elsif,end,ensure,false,in,module,next,nil,not,or,redo,rescue,retry,self,super,then,true,undef,unless,until,when,yield,BEGIN,END"],v=[v,"case,done,elif,esac,eval,fi,function,in,local,set,then,until"],K=/^(DIR|FILE|vector|(de|priority_)?queue|list|stack|(const_)?iterator|(multi)?(set|map)|bitset|u?(int|float)\d*)/,N=/\S/,O=u({keywords:[F,H,w,"caller,delete,die,do,dump,elsif,eval,exit,foreach,for,goto,if,import,last,local,my,next,no,our,print,package,redo,require,sub,undef,unless,until,use,wantarray,while,BEGIN,END"+
+I,J,v],hashComments:!0,cStyleComments:!0,multiLineStrings:!0,regexLiterals:!0}),A={};k(O,["default-code"]);k(x([],[["pln",/^[^<?]+/],["dec",/^<!\w[^>]*(?:>|$)/],["com",/^<\!--[\S\s]*?(?:--\>|$)/],["lang-",/^<\?([\S\s]+?)(?:\?>|$)/],["lang-",/^<%([\S\s]+?)(?:%>|$)/],["pun",/^(?:<[%?]|[%?]>)/],["lang-",/^<xmp\b[^>]*>([\S\s]+?)<\/xmp\b[^>]*>/i],["lang-js",/^<script\b[^>]*>([\S\s]*?)(<\/script\b[^>]*>)/i],["lang-css",/^<style\b[^>]*>([\S\s]*?)(<\/style\b[^>]*>)/i],["lang-in.tag",/^(<\/?[a-z][^<>]*>)/i]]),
+["default-markup","htm","html","mxml","xhtml","xml","xsl"]);k(x([["pln",/^\s+/,q," \t\r\n"],["atv",/^(?:"[^"]*"?|'[^']*'?)/,q,"\"'"]],[["tag",/^^<\/?[a-z](?:[\w-.:]*\w)?|\/?>$/i],["atn",/^(?!style[\s=]|on)[a-z](?:[\w:-]*\w)?/i],["lang-uq.val",/^=\s*([^\s"'>]*(?:[^\s"'/>]|\/(?=\s)))/],["pun",/^[/<->]+/],["lang-js",/^on\w+\s*=\s*"([^"]+)"/i],["lang-js",/^on\w+\s*=\s*'([^']+)'/i],["lang-js",/^on\w+\s*=\s*([^\s"'>]+)/i],["lang-css",/^style\s*=\s*"([^"]+)"/i],["lang-css",/^style\s*=\s*'([^']+)'/i],["lang-css",
+/^style\s*=\s*([^\s"'>]+)/i]]),["in.tag"]);k(x([],[["atv",/^[\S\s]+/]]),["uq.val"]);k(u({keywords:F,hashComments:!0,cStyleComments:!0,types:K}),["c","cc","cpp","cxx","cyc","m"]);k(u({keywords:"null,true,false"}),["json"]);k(u({keywords:H,hashComments:!0,cStyleComments:!0,verbatimStrings:!0,types:K}),["cs"]);k(u({keywords:G,cStyleComments:!0}),["java"]);k(u({keywords:v,hashComments:!0,multiLineStrings:!0}),["bsh","csh","sh"]);k(u({keywords:I,hashComments:!0,multiLineStrings:!0,tripleQuotedStrings:!0}),
+["cv","py"]);k(u({keywords:"caller,delete,die,do,dump,elsif,eval,exit,foreach,for,goto,if,import,last,local,my,next,no,our,print,package,redo,require,sub,undef,unless,until,use,wantarray,while,BEGIN,END",hashComments:!0,multiLineStrings:!0,regexLiterals:!0}),["perl","pl","pm"]);k(u({keywords:J,hashComments:!0,multiLineStrings:!0,regexLiterals:!0}),["rb"]);k(u({keywords:w,cStyleComments:!0,regexLiterals:!0}),["js"]);k(u({keywords:"all,and,by,catch,class,else,extends,false,finally,for,if,in,is,isnt,loop,new,no,not,null,of,off,on,or,return,super,then,true,try,unless,until,when,while,yes",
+hashComments:3,cStyleComments:!0,multilineStrings:!0,tripleQuotedStrings:!0,regexLiterals:!0}),["coffee"]);k(x([],[["str",/^[\S\s]+/]]),["regex"]);window.prettyPrintOne=function(a,m,e){var h=document.createElement("PRE");h.innerHTML=a;e&&D(h,e);E({g:m,i:e,h:h});return h.innerHTML};window.prettyPrint=function(a){function m(){for(var e=window.PR_SHOULD_USE_CONTINUATION?l.now()+250:Infinity;p<h.length&&l.now()<e;p++){var n=h[p],k=n.className;if(k.indexOf("prettyprint")>=0){var k=k.match(g),f,b;if(b=
+!k){b=n;for(var o=void 0,c=b.firstChild;c;c=c.nextSibling)var i=c.nodeType,o=i===1?o?b:c:i===3?N.test(c.nodeValue)?b:o:o;b=(f=o===b?void 0:o)&&"CODE"===f.tagName}b&&(k=f.className.match(g));k&&(k=k[1]);b=!1;for(o=n.parentNode;o;o=o.parentNode)if((o.tagName==="pre"||o.tagName==="code"||o.tagName==="xmp")&&o.className&&o.className.indexOf("prettyprint")>=0){b=!0;break}b||((b=(b=n.className.match(/\blinenums\b(?::(\d+))?/))?b[1]&&b[1].length?+b[1]:!0:!1)&&D(n,b),d={g:k,h:n,i:b},E(d))}}p<h.length?setTimeout(m,
+250):a&&a()}for(var e=[document.getElementsByTagName("pre"),document.getElementsByTagName("code"),document.getElementsByTagName("xmp")],h=[],k=0;k<e.length;++k)for(var t=0,s=e[k].length;t<s;++t)h.push(e[k][t]);var e=q,l=Date;l.now||(l={now:function(){return+new Date}});var p=0,d,g=/\blang(?:uage)?-([\w.]+)(?!\S)/;m()};window.PR={createSimpleLexer:x,registerLangHandler:k,sourceDecorator:u,PR_ATTRIB_NAME:"atn",PR_ATTRIB_VALUE:"atv",PR_COMMENT:"com",PR_DECLARATION:"dec",PR_KEYWORD:"kwd",PR_LITERAL:"lit",
+PR_NOCODE:"nocode",PR_PLAIN:"pln",PR_PUNCTUATION:"pun",PR_SOURCE:"src",PR_STRING:"str",PR_TAG:"tag",PR_TYPE:"typ"}})();
+}
+(function ($, glimpse) {
+    var modify = function (template) {
+            template.css += '.glimpse .pln{color:#000}.glimpse .str{color:#080}.glimpse .kwd{color:#008}.glimpse .com{color:#800}.glimpse .typ{color:#606}.glimpse .lit{color:#066}.glimpse .pun,.glimpse .opn, .glimpse .clo{color:#660}.glimpse .tag{color:#008}.glimpse .atn{color:#606}.glimpse .atv{color:#080}.glimpse .dec, .glimpse .var{color:#606}.glimpse .fun{color:red}.glimpse .prettyprint span{font-family:Consolas, monospace, serif; font-size:1.1em;}.glimpse ol.linenums{margin-top:0;margin-bottom:0}.glimpse li.L0,.glimpse li.L1,.glimpse li.L2,.glimpse li.L3,.glimpse li.L5,.glimpse li.L6,.glimpse li.L7,.glimpse li.L8{list-style-type:none}.glimpse li.L1,.glimpse li.L3,.glimpse li.L5,.glimpse li.L7,.glimpse li.L9{background:#eee}';
+        };
+        glimpse.pubsub.subscribe('state.build.template.modify', function(t, p) { modify(p); }); 
 }($Glimpse, glimpse));
