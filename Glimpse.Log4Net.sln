@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Glimpse.Log4Net", "Glimpse.Log4Net\Glimpse.Log4Net.csproj", "{537974EB-E077-453D-AA51-3A0558DC2536}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemoWebsite", "DemoWebsite\DemoWebsite.csproj", "{B8048062-A2A9-4833-98C8-FF637705BABF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{537974EB-E077-453D-AA51-3A0558DC2536}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{537974EB-E077-453D-AA51-3A0558DC2536}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{537974EB-E077-453D-AA51-3A0558DC2536}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{537974EB-E077-453D-AA51-3A0558DC2536}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8048062-A2A9-4833-98C8-FF637705BABF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8048062-A2A9-4833-98C8-FF637705BABF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8048062-A2A9-4833-98C8-FF637705BABF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8048062-A2A9-4833-98C8-FF637705BABF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

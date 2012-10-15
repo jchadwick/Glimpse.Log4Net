@@ -1,58 +1,43 @@
-A client side Glimpse into whats going on in your server 
+A plugin to display log4net log messages in Glimpse.
 
-Overview
+Getting Started
 --------
-At its core Glimpse allows you to debug your Web Service right in the browser. Glimpse allows you to "Glimpse" into what's going on in your web server. In other words what Firebug is to debugging your client side code, Glimpse is to debugging your server within the client.
+In order to begin using the Glimpse.Log4Net (GL4N) plugin, add a reference to the plugin assembly (*Glimpse.Log4Net.dll*) to your web project, or simply drop the assembly in your `/bin` folder.  
 
-Fundamentally Glimpse is made up of 3 different parts, all of which are extensible and customizable for any platform:
-
-* Glimpse Server Module 
-* Glimpse Client Side Viewer 
-* Glimpse Protocol
+Alternatively, add the reference via NuGet:  `Install-Package Glimpse.Log4Net`
 
 
-How it Works
-------------
-On the Server:
+Basic Configuration
+---------
+Unless you manually configure a GL4N appender, GL4N will automatically attach one to log4net's Root appender for you.  This means that (for most configurations) adding the assembly reference to your project should be all that is required.
 
-1. Server collects all server side information that will aid in debugging (i.e. application settings, routes, session variables, trace data, etc)
-2. It does this by running through a pipeline of server side data providers that can be dynamically controlled and added to under plugin architecture
-3. Before the response is send, the server formats this data in accordance with the Glimpse Protocol and serializes it as JSON
-4. Depending on whether it is a Ajax request or not, the server embeds the JSON in the HTTP Header or in the content of the page
+### Setting the Log Level threshold
+By default, GL4N will only log messages above the Warn log level.
+The best way to modify this default is to configure GL4N via your log4net configuration (shown below).
+However, if everything works great and you just want to change the default log level, you may do so by setting the `Glimpse.Log4Net.Appender.GlimpseAppender.DefaultThreshold` property to the desired threshold.
 
-On the Client:
+For example, you would use the following code to log Debug messages (and above):
 
-5. Depending on whether it is a Ajax request or not, the picks up the JSON data and to the data set by executing a pipeline of client side data providers that can be dynamically controlled and added to under plugin architecture
-6. The client side module then dynamically renders a client side UI (similar to Firebug Lite) that lets you view this data
+    Glimpse.Log4Net.Appender.GlimpseAppender.DefaultThreshold = log4net.Core.Level.Debug;
 
-Glimpse can be turned on or off by a series of different mechanistic, but at its core if the Glimpse cookie is present the server will provide the "debug" data - as a security measure, the request for debug data is "authenticated". Via the plugin model, this authentication check can have any logic that is required by the site to ensure that unauthorized users don't have access to sensitive debug data.
-
- 
-Server Implementations 
-----------------------
-Given the scope of the project and what it can do, the concept isn't restricted to any one platform. Hence, once mature, Glimpse Server Module will be available on all major web platforms. 
-
-Platforms currently supported:
-
-* ASP.Net Web Forms 
-* ASP.Net MVC 
-
-Platforms soon to be supported supported:
-
-* PHP
-* Ruby on Rails 
-
-NOTE - If you would like help develop a Glimpse Server Module for a given platform please let us know.
+<blockquote>
+<em>Note that this is a static property so it is applied globally!</em>
+</blockquote>
 
 
-Client Implementations 
-----------------------
-To start with the Glimpse Client Side Viewer is simply a light weight JavaScript "plugin" that understands the Glimpse Protocol and knows how to render the data. From a technology standpoint we currently use jQuery as the client side framework.
+Enhanced Configuration (via log4net)
+---------
+At the end of the day, GL4N is just a log4net appender that appends to Glimpse rather than, say, a physical log file.
+This means that you configure it just like any other log4net appender.  
 
-Eventually, we would like to have actual browser plugins that provide richer functionality and experience, but the JavaScript version of the Glimpse Client Side Viewer is surprisingly well featured, intuitive and provides a high fidelity experience. We also hope to have a version for mobile ready soon which customizes the viewing/usage experience when using a mobile device.
+For example:
 
-![Glimpse Client](/Glimpse/Glimpse/raw/master/Doco/Glimpse.png "Glimpse Client")
+	<log4net>
+		<appender name="GlimpseAppender" type="Glimpse.Log4Net.Appender.GlimpseAppender" />
+		<root>
+			<level value="ALL" />
+			<appender-ref ref="GlimpseAppender" />
+		</root>
+	</log4net>
 
-Protocol
--------- 
-Details coming soon.
+Note that, with this configuration in place, GL4N will use the configured appender and not create its own.
