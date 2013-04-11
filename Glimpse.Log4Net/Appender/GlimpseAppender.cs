@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Web;
 using Glimpse.Core;
+using Glimpse.Core.Extensibility;
 using log4net;
 using log4net.Appender;
 using log4net.Core;
@@ -11,7 +12,7 @@ namespace Glimpse.Log4Net.Appender
 {
     public class GlimpseAppender : AppenderSkeleton
     {
-        private const string ContextKey = Plugin.RequestLogEntries.ContextKey;
+        private const string ContextKey = Plugin.GlimpseLog4NetTab.ContextKey;
 
         /// <summary>
         /// The log level threshold for the dynamically-generated
@@ -22,8 +23,9 @@ namespace Glimpse.Log4Net.Appender
         /// off just configuring one in your log4net config...
         /// </remarks>
         public static Level DefaultThreshold = Level.Warn;
+        private static IMessageBroker _messageBroker;
 
-        public static void Initialize()
+        internal static void Initialize()
         {
             // Users are free to add (and configure) a GlimpseAppender 
             // via log4net, but if they didn't then do it for them
@@ -42,18 +44,15 @@ namespace Glimpse.Log4Net.Appender
 
         protected override void Append(LoggingEvent loggingEvent)
         {
-            if (Module.Configuration == null || Module.Configuration.Enabled == false)
-                return;
+            _messageBroker.Publish<LoggingEvent>(loggingEvent);
 
-            var context = HttpContext.Current;
+        }
 
-            if (context == null)
-                return;
-
-            if (context.Items[ContextKey] == null)
-                context.Items[ContextKey] = new List<LoggingEvent>();
-
-            ((IList<LoggingEvent>)context.Items[ContextKey]).Add(loggingEvent);
+        internal static void Initialize(IMessageBroker messageBroker)
+        {
+            Initialize();
+            _messageBroker = messageBroker;
+            
         }
     }
 }
