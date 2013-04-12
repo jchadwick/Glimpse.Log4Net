@@ -20,6 +20,15 @@ namespace DemoWebsite.Controllers
             Log.Error("Example error!");
             Log.Fatal("Example fatal!");
 
+            try
+            {
+                throw new InvalidOperationException("Dummy exception");
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Example exception", ex);
+            }
+
             ViewBag.Message = "Welcome to ASP.NET MVC!";
 
             return View();

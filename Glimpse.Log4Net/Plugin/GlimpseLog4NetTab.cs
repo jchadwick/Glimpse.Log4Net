@@ -7,6 +7,7 @@ using Glimpse.Core.Extensions;
 using Glimpse.Core.Extensibility;
 using Glimpse.Log4Net.Appender;
 using log4net.Core;
+using Glimpse.Log4Net.Messages;
 
 namespace Glimpse.Log4Net.Plugin
 {
@@ -34,15 +35,14 @@ namespace Glimpse.Log4Net.Plugin
 
         public void Setup(ITabSetupContext context)
         {
-            context.PersistMessages<LoggingEvent>();
-            GlimpseAppender.Initialize(context.MessageBroker);
+            context.PersistMessages<LoggingEventMessage>();
         }
 
         
 
         public override object GetData(ITabContext context)
         {
-            var logEntries = context.GetMessages<LoggingEvent>();
+            var logEntries = context.GetMessages<LoggingEventMessage>();
             
             if (logEntries == null)
                 return null;
@@ -60,47 +60,45 @@ namespace Glimpse.Log4Net.Plugin
             {
                 data.Add(new[] { "Level", "Timestamp", "Message", "Log Entry" });
                 data.AddRange(logEntries.Select(log => new object[] {
-                                    log.Level.DisplayName, 
+                                    log.LevelName, 
                                     log.TimeStamp, 
-                                    log.RenderedMessage,
+                                    log.Message,
                                     log,
-                                    GetStyle(log.Level),
+                                    GetStyle(log.LevelValue),
                                 }));
             }
             else
             {
                 data.Add(new[] { "Level", "Timestamp", "Message" });
                 data.AddRange(logEntries.Select(log => new object[] {
-                                    log.Level.DisplayName, 
+                                    log.LevelName, 
                                     log.TimeStamp, 
-                                    log.RenderedMessage,
-                                    GetStyle(log.Level),
+                                    log.Message,
+                                    GetStyle(log.LevelValue),
                                 }));
             }
 
             return data;
         }
 
-        private string GetStyle(Level level)
+        private string GetStyle(int level)
         {
-            var value = level.Value;
-
-            if(value < Level.Info.Value)
+            if (level < Level.Info.Value)
                 return "quiet";
 
-            if(value >= Level.Info.Value && value < Level.Warn.Value)
+            if (level >= Level.Info.Value && level < Level.Warn.Value)
                 return "info";
 
-            if(value >= Level.Warn.Value && value < Level.Error.Value)
+            if (level >= Level.Warn.Value && level < Level.Error.Value)
                 return "warn";
 
-            if (value >= Level.Error.Value && value < Level.Alert.Value)
+            if (level >= Level.Error.Value && level < Level.Alert.Value)
                 return "error";
 
-            if(value >= Level.Alert.Value)
+            if (level >= Level.Alert.Value)
                 return "fail";
 
-            return level.Name;
+            return level.ToString();
         }
     }
 }

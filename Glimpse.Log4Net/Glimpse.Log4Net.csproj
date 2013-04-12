@@ -51,7 +51,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Appender\GlimpseAppender.cs" />
+    <Compile Include="Messages\ExceptionMessage.cs" />
+    <Compile Include="Messages\LoggingEventMessage.cs" />
     <Compile Include="Plugin\GlimpseLog4NetTab.cs" />
+    <Compile Include="Plugin\Log4NetInspector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
