@@ -12,7 +12,7 @@
     <description>Plugin for Glimpse to view log4net log entries.</description>
     <tags>Glimpse log4net</tags>
     <dependencies>
-      <dependency id="Glimpse" version="0.86" />
+      <dependency id="Glimpse" version="1.2.0" />
       <dependency id="log4net" version="2.0.0" />
     </dependencies>
   </metadata>

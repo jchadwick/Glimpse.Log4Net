@@ -2,16 +2,22 @@
 using System.Linq;
 using System.Web;
 using Glimpse.Core;
+using Glimpse.Core.Extensions;
+using Glimpse.Core.Extensibility;
 using log4net;
 using log4net.Appender;
 using log4net.Core;
 using log4net.Repository.Hierarchy;
+using System.Diagnostics;
+using Glimpse.Log4Net.Messages;
+using Glimpse.Core.Framework;
+using System;
 
 namespace Glimpse.Log4Net.Appender
 {
     public class GlimpseAppender : AppenderSkeleton
     {
-        private const string ContextKey = Plugin.RequestLogEntries.ContextKey;
+        private const string ContextKey = Plugin.GlimpseLog4NetTab.ContextKey;
 
         /// <summary>
         /// The log level threshold for the dynamically-generated
@@ -23,37 +29,46 @@ namespace Glimpse.Log4Net.Appender
         /// </remarks>
         public static Level DefaultThreshold = Level.Warn;
 
-        public static void Initialize()
+        private IMessageBroker messageBroker;
+        //private Func<IExecutionTimer> timerStrategy;
+
+        internal IMessageBroker MessageBroker
         {
-            // Users are free to add (and configure) a GlimpseAppender 
-            // via log4net, but if they didn't then do it for them
-
-            var registeredAppenders =
-                LogManager.GetAllRepositories()
-                    .SelectMany(repo => repo.GetAppenders())
-                    .OfType<GlimpseAppender>();
-
-            if (registeredAppenders.Count() > 0)
-                return;
-
-            var repository = (Hierarchy)LogManager.GetRepository();
-            repository.Root.AddAppender(new GlimpseAppender { Threshold = DefaultThreshold });
+            get { return messageBroker ?? (messageBroker = GlimpseConfiguration.GetConfiguredMessageBroker()); }
+            set { messageBroker = value; }
         }
 
+        //internal Func<IExecutionTimer> TimerStrategy 
+        //{
+        //    get { return timerStrategy ?? (timerStrategy = GlimpseConfiguration.GetConfiguredTimerStrategy()); }
+        //    set { timerStrategy = value; }
+        //}
+
+        public GlimpseAppender()
+            : this(GlimpseConfiguration.GetConfiguredMessageBroker(), GlimpseConfiguration.GetConfiguredTimerStrategy())
+        {
+        }
+
+        public GlimpseAppender(IMessageBroker messageBroker, System.Func<IExecutionTimer> timerStrategy)
+        {
+            this.MessageBroker = messageBroker;
+            //this.TimerStrategy = timerStrategy;
+        }
+       
         protected override void Append(LoggingEvent loggingEvent)
         {
-            if (Module.Configuration == null || Module.Configuration.Enabled == false)
+            //var timer = TimerStrategy();
+
+            // Execution in on thread without access to RequestStore
+            if (//timer == null || 
+                MessageBroker == null)
+            {
                 return;
+            }
 
-            var context = HttpContext.Current;
-
-            if (context == null)
-                return;
-
-            if (context.Items[ContextKey] == null)
-                context.Items[ContextKey] = new List<LoggingEvent>();
-
-            ((IList<LoggingEvent>)context.Items[ContextKey]).Add(loggingEvent);
+           LoggingEventMessage message = new LoggingEventMessage(loggingEvent);
+                
+            MessageBroker.Publish<LoggingEventMessage>(message);
         }
     }
 }

@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Glimpse.Core">
-      <HintPath>..\packages\Glimpse.0.87\lib\net40\Glimpse.Core.dll</HintPath>
+      <HintPath>..\packages\Glimpse.1.2.0\lib\net40\Glimpse.Core.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=1.2.11.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -51,7 +51,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Appender\GlimpseAppender.cs" />
-    <Compile Include="Plugin\RequestLogEntries.cs" />
+    <Compile Include="Messages\ExceptionMessage.cs" />
+    <Compile Include="Messages\LoggingEventMessage.cs" />
+    <Compile Include="Plugin\GlimpseLog4NetTab.cs" />
+    <Compile Include="Plugin\Log4NetInspector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
