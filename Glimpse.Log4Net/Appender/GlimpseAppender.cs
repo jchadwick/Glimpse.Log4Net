@@ -42,9 +42,6 @@ namespace Glimpse.Log4Net.Appender
 
         protected override void Append(LoggingEvent loggingEvent)
         {
-            if (Module.Configuration == null || Module.Configuration.Enabled == false)
-                return;
-
             var context = HttpContext.Current;
 
             if (context == null)
