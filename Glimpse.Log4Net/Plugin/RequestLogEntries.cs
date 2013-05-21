@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -7,8 +8,7 @@ using log4net.Core;
 
 namespace Glimpse.Log4Net.Plugin
 {
-    [GlimpsePlugin(ShouldSetupInInit = true)]
-    public class RequestLogEntries : IGlimpsePlugin
+    public class RequestLogEntries : ITab, ITabSetup
     {
         public const string ContextKey = "Glimpse.Log4Net.LogEntries";
         
@@ -25,14 +25,25 @@ namespace Glimpse.Log4Net.Plugin
         /// </remarks>
         public static volatile int MaxDetailedLogs = 1000;
 
+        public object GetData(ITabContext context) {
+            return GetData(context.GetRequestContext<HttpContextBase>());
+        }
+
         public string Name
         {
             get { return "log4net"; }
         }
 
-        public void SetupInit()
-        {
-            GlimpseAppender.Initialize();
+        public RuntimeEvent ExecuteOn { 
+            get {
+                return RuntimeEvent.EndRequest;
+            } 
+        }
+
+        public Type RequestContextType {
+            get {
+                return null;
+            }
         }
 
         public object GetData(HttpContextBase context)
@@ -80,7 +91,7 @@ namespace Glimpse.Log4Net.Plugin
             return data;
         }
 
-        private string GetStyle(Level level)
+        private static string GetStyle(Level level)
         {
             var value = level.Value;
 
@@ -100,6 +111,10 @@ namespace Glimpse.Log4Net.Plugin
                 return "fail";
 
             return level.Name;
+        }
+
+        public void Setup(ITabSetupContext context) {
+            GlimpseAppender.Initialize();
         }
     }
 }
