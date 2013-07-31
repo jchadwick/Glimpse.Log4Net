@@ -29,8 +29,6 @@ namespace DemoWebsite
 
         protected void Application_Start()
         {
-            InitializeLogging();
-
             AreaRegistration.RegisterAllAreas();
 
             // Use LocalDB for Entity Framework by default
@@ -42,8 +40,6 @@ namespace DemoWebsite
 
         private void InitializeLogging()
         {
-            log4net.Config.BasicConfigurator.Configure();
-            Glimpse.Log4Net.Appender.GlimpseAppender.DefaultThreshold = log4net.Core.Level.Debug;
         }
     }
 }

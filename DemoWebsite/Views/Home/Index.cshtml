@@ -6,3 +6,18 @@
 <p>
     To learn more about ASP.NET MVC visit <a href="http://asp.net/mvc" title="ASP.NET MVC Website">http://asp.net/mvc</a>.
 </p>
+
+<div>
+    <p>Try changing the log level below to see how it affects the logs that Glimpse.Log4Net shows:</p>
+    <p>
+        <label>Log Level:</label>
+        @using (Html.BeginForm("ChangeGlimpseLogLevel", "Home"))
+        {
+            @Html.DropDownList("level", 
+                    new SelectList(new [] { "DEBUG", "INFO", "WARN", "ERROR", "FATAL" }, 
+                    ViewBag.CurrentGlimpseLogLevel))
+
+            <input type="submit" value="Change Log Level"/>
+        }
+    </p>
+</div>
