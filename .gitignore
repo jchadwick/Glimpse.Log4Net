@@ -38,8 +38,6 @@ _ReSharper*/
 *.nupkg
 # The packages folder can be ignored because of Package Restore
 **/packages/*
-# except build/, which is used as an MSBuild target.
-!**/packages/build/
 
 # Backup & report files from converting an old project file
 # to a newer Visual Studio version. Backup files are not needed,
